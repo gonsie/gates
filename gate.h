@@ -39,7 +39,7 @@ typedef struct {
 
 
 
-void (*gate_func)(vector input, vector output) = NULL;
+typedef void (*gate_func)(vector input, vector output);
 //assuming boolean (0/1) logic for now
 
 void SOURCE_func(vector input, vector output){
@@ -149,8 +149,6 @@ typedef struct {
     vector outputs;
     
     int received_events;
-    
-    void (*gate_func)(vector input, vector output);
     
 } gate_state;
 

@@ -15,6 +15,7 @@
 
 
 //Gate Types
+#define GATE_TYPE_COUNT (12)
 #define SOURCE_GATE (0)
 #define SINK_GATE (1)
 #define INPUT_GATE (2)

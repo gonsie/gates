@@ -6,6 +6,21 @@
 #include "ross.h"
 #include "gate.h"
 
+gate_func function_array[GATE_TYPE_COUNT] = {
+    &SOURCE_func,
+    &SINK_func,
+    &INPUT_func,
+    &OUTPUT_func,
+    &NOT_func,
+    &DFF_func,
+    &AND_func,
+    &NAND_func,
+    &OR_func,
+    &NOR_func,
+    &XOR_func,
+    &XNOR_func,
+};
+
 void gates_init(gate_state *s, tw_lp *lp){
     s->received_events = 0;
     
@@ -13,7 +28,6 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     if (self == SOURCE_ID) {
         s->gate_type = SOURCE_GATE;
-        s->gate_func = &SOURCE_func;
         s->outputs = tw_calloc(TW_LOC, "gates_init_source_lp", sizeof(struct vector) + SOURCE_OUTPUTS * sizeof(pair), 1);
         
         //event to open file and distribute gate info
@@ -29,7 +43,6 @@ void gates_init(gate_state *s, tw_lp *lp){
         tw_event_send(f);
     } else if (self == SINK_ID) {
         s->gate_type = SINK_ID;
-        s->gate_func = &SINK_func;
     } else if (self < TOTAL_GATE_COUNT + 2) {
         s->inputs = tw_calloc(TW_LOC, "gates_init_gate_lp_input", sizeof(struct vector) + MAX_GATE_INPUTS * sizeof(pair), 1);
         s->outputs = tw_calloc(TW_LOC, "gates_init_gate_lp_output", sizeof(struct vector) + MAX_GATE_OUTPUTS * sizeof(pair), 1);
@@ -71,38 +84,28 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             
             if (strncmp(type, "INPUT", 5) == 0){
                 s->gate_type = INPUT_GATE;
-                s->gate_func = &INPUT_func;
                 count++;
                 inputs[0] = SOURCE_ID;
             } else if (strncmp(type, "OUTPUT", 6) == 0){
                 s->gate_type = OUTPUT_GATE;
-                s->gate_func = &OUTPUT_func;
                 s->outputs->size = 1;
                 s->outputs->array[0].gid = SINK_ID;
             } else if (strncmp(type, "NOT", 3) == 0){
                 s->gate_type = NOT_GATE;
-                s->gate_func = &NOT_func;
             } else if (strncmp(type, "DFF", 3) == 0){
                 s->gate_type = DFF_GATE;
-                s->gate_func = &DFF_func;
             } else if (strncmp(type, "AND", 3) == 0){
                 s->gate_type = AND_GATE;
-                s->gate_func = &AND_func;
             } else if (strncmp(type, "NAND", 4) == 0){
                 s->gate_type = NAND_GATE;
-                s->gate_func = &NAND_func;
             } else if (strncmp(type, "OR", 2) == 0){
                 s->gate_type = OR_GATE;
-                s->gate_func = &OR_func;
             } else if (strncmp(type, "NOR", 3) == 0){
                 s->gate_type = NOR_GATE;
-                s->gate_func = &NOR_func;
             } else if (strncmp(type, "XOR", 3) == 0){
                 s->gate_type = XOR_GATE;
-                s->gate_func = XOR_func;
             } else if (strncmp(type, "XNOR", 4) == 0){
                 s->gate_type = XNOR_GATE;
-                s->gate_func = XNOR_func;
             } else {
                 printf("ERROR: gate type unrecognized in %s", in_msg->data.line);
             }
@@ -173,7 +176,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         msg->type = LOGIC_CALC_MSG;
         tw_event_send(e);
     } else if (in_msg->type == LOGIC_CALC_MSG) {
-        s->gate_func(s->inputs, s->outputs);
+        function_array[s->gate_type](s->inputs, s->outputs);
         
         //send event to outputs
         for(i = 0; i < s->outputs->size; i++){
