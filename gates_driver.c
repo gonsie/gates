@@ -21,6 +21,8 @@ gate_func function_array[GATE_TYPE_COUNT] = {
     &XNOR_func,
 };
 
+char input[LP_COUNT][LINE_LENGTH];
+
 void gates_init(gate_state *s, tw_lp *lp){
     s->received_events = 0;
     
@@ -234,7 +236,7 @@ int gates_main(int argc, char* argv[]){
     
     tw_init(&argc, &argv);
     //printf("lps per pe: %d\n", (int) ceil((2 + TOTAL_GATE_COUNT) / (double)NP));
-    tw_define_lps((int) ceil((2 + TOTAL_GATE_COUNT) / (double)NP), sizeof(message), 0);
+    tw_define_lps(LP_COUNT, sizeof(message), 0);
     int i;
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);

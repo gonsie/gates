@@ -25,7 +25,6 @@ typedef struct vector {
     pair array[];
 } *vector;
 
-
 union message_data {
     pair p;
     char line[LINE_LENGTH];
