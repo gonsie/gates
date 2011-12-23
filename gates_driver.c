@@ -21,9 +21,50 @@ gate_func function_array[GATE_TYPE_COUNT] = {
     &XNOR_func,
 };
 
-char input[LP_COUNT][LINE_LENGTH];
+char global_input[LP_COUNT][LINE_LENGTH + 1];
 
 void gates_init(gate_state *s, tw_lp *lp){
+    int self = lp->gid;
+    
+    s->received_events = 0;
+    
+    if(self < TOTAL_GATE_COUNT){
+        int type = -1;
+        int inputs[MAX_GATE_INPUTS];
+        printf("%d (%d) scanning %s", (int) lp->id, self, global_input[lp->id]);
+        int count = sscanf(global_input[lp->id], "%d %d %d %d %d", type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
+        
+        s->gate_type = type;
+        s->inputs->size = count - 1;
+        
+        if (s->gate_type == INPUT_GATE) {
+            s->inputs->size = 1;
+            inputs[0] = SOURCE_ID;
+        }
+        
+        switch (s->inputs->size) {
+            case 4:
+                s->inputs->array[3].gid = inputs[3];
+            case 3:
+                s->inputs->array[2].gid = inputs[2];
+            case 2:
+                s->inputs->array[1].gid = inputs[1];
+            case 1:
+                s->inputs->array[0].gid = inputs[0];
+            default:
+                break;
+        }
+    } else if (self == SOURCE_ID) {
+        s->gate_type = SOURCE_GATE;
+    } else if (self == SINK_ID) {
+        s->gate_type = SINK_GATE;
+    } else {
+        //printf("%d is an unused lp\n", self);
+    }
+    
+}
+
+void gates_init_event_read(gate_state *s, tw_lp *lp){
     s->received_events = 0;
     
     int self = lp->gid;
@@ -229,15 +270,32 @@ const tw_optdef gates_opts[] = {
 #define gates_main main
 
 int gates_main(int argc, char* argv[]){
-    
-    //IO
+    int i;
     
     tw_opt_add(gates_opts);
     
     tw_init(&argc, &argv);
+    
+    //IO
+    //printf("%d is attempting to start io\n", g_tw_mynode);
+    MPI_File fh;
+    MPI_Request req;
+    
+    char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
+    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+    
+    //NOTE: for some reason count is off
+    int offset = g_tw_mynode * LP_COUNT * (LINE_LENGTH-1);
+    printf("offset is %d\n", offset);
+    for (i = 0; i < LP_COUNT; i++) {
+        MPI_File_iread_at(fh, offset + (i*LINE_LENGTH) - i, global_input[i], LINE_LENGTH-1, MPI_CHAR, &req);
+        //if (g_tw_mynode == 1) printf("<%d read line %s>", g_tw_mynode, global_input[i]);
+    }
+    MPI_File_close(&fh);
+    //printf("%d should have finished io\n", g_tw_mynode);
+    
     //printf("lps per pe: %d\n", (int) ceil((2 + TOTAL_GATE_COUNT) / (double)NP));
     tw_define_lps(LP_COUNT, sizeof(message), 0);
-    int i;
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
     }
