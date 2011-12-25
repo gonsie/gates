@@ -147,6 +147,8 @@ typedef struct {
     vector inputs;
     vector outputs;
     
+    char **line_ptr;
+    
     int received_events;
     
 } gate_state;
