@@ -147,7 +147,7 @@ typedef struct {
     vector inputs;
     vector outputs;
     
-    char **line_ptr;
+    char line_ptr[LINE_LENGTH];
     
     int received_events;
     

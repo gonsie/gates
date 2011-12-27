@@ -309,8 +309,15 @@ int gates_main(int argc, char* argv[]){
     for (i = 0; i < LP_COUNT && g_tw_mynode * LP_COUNT + i <= TOTAL_GATE_COUNT; i++) {
         MPI_File_iread_at(fh, offset + (i*LINE_LENGTH) - i, global_input[i], LINE_LENGTH-1, MPI_CHAR, &req);
         //if (g_tw_mynode == 1) printf("<%d read line %s>", g_tw_mynode, global_input[i]);
-    }
+            }
     MPI_File_close(&fh);
+    
+//    for (i = 0; i < g_tw_mynode; i++) {
+//        printf("%d is trying to do a strcpy for %d\n", (int) g_tw_mynode, i);
+//        strcpy(((gate_state *)g_tw_lp[i]->cur_state)->line_ptr, global_input[i]);
+//
+//    }
+//    
     
     tw_run();
     
