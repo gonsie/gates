@@ -25,15 +25,9 @@ typedef struct vector_t {
     pair array[];
 } *vector;
 
-union message_data {
-    pair p;
-    char line[LINE_LENGTH];
-};
-
-
 typedef struct {
     int type;
-    union message_data data;
+    pair data;
 } message;
 
 
@@ -134,10 +128,6 @@ void XNOR_func(vector input, vector output){
     NOT_func(output, output);
 }
 
-
-
-
-
 typedef struct {
     
     //gate specific information
@@ -146,8 +136,6 @@ typedef struct {
     //variables for linking gates
     vector inputs;
     vector outputs;
-    
-    char line_ptr[LINE_LENGTH];
     
     int received_events;
     

@@ -25,26 +25,34 @@ char global_input[LP_COUNT][LINE_LENGTH + 1];
 
 void gates_init(gate_state *s, tw_lp *lp){
     int self = lp->gid;
-    
-    
-//    printf("%d s->line_ptr value: %d\n", self, (int) s->line_ptr);
-//    printf("%d lp->cur_state->line_ptr: %d\n", self, (int) ((gate_state*) lp->cur_state)->line_ptr);
-    
     s->received_events = 0;
     
-    if(self < TOTAL_GATE_COUNT){
+    if (self == SOURCE_ID) {
+        s->gate_type = SOURCE_GATE;
+        s->outputs = tw_calloc(TW_LOC, "gates_init_source_lp", sizeof(vector) + SOURCE_OUTPUTS * sizeof(pair), 1);
+        
+        //event to start simulation
+        tw_event *e = tw_event_new(self, 10, lp);
+        message *msg = tw_event_data(e);
+        msg->type = SOURCE_MSG;
+        tw_event_send(e);
+    } else if (self == SINK_ID) {
+        s->gate_type = SINK_GATE;
+    } else if(self < TOTAL_GATE_COUNT + 2){
         int type = -1;
+        int output_count = 0;
         int inputs[MAX_GATE_INPUTS];
-        printf("%d (%d) scanning %s", (int) lp->id, self, global_input[lp->id]);
-        int count = sscanf(global_input[lp->id], "%d %d %d %d %d", &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
+        
+        int count = sscanf(global_input[lp->id], "%d %d %d %d %d %d", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
         
         s->gate_type = type;
-        s->inputs->size = count - 1;
-        
         if (s->gate_type == INPUT_GATE) {
-            s->inputs->size = 1;
             inputs[0] = SOURCE_ID;
+            count++;
         }
+        
+        s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + (count - 2) * sizeof(pair), 1);
+        s->inputs->size = count - 2;
         
         switch (s->inputs->size) {
             case 4:
@@ -58,137 +66,47 @@ void gates_init(gate_state *s, tw_lp *lp){
             default:
                 break;
         }
-    } else if (self == SOURCE_ID) {
-        s->gate_type = SOURCE_GATE;
-    } else if (self == SINK_ID) {
-        s->gate_type = SINK_GATE;
-    } else {
-        //printf("%d is an unused lp\n", self);
-    }
-    
-}
-
-void gates_init_event_read(gate_state *s, tw_lp *lp){
-    s->received_events = 0;
-    
-    int self = lp->gid;
-    
-    if (self == SOURCE_ID) {
-        s->gate_type = SOURCE_GATE;
-        s->outputs = tw_calloc(TW_LOC, "gates_init_source_lp", sizeof(struct vector) + SOURCE_OUTPUTS * sizeof(pair), 1);
         
-        //event to open file and distribute gate info
+        s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_count * sizeof(pair), 1);
+        s->outputs->size = 0;
+        
+        if (s->gate_type == OUTPUT_GATE) {
+            s->outputs->array[0].gid = SINK_ID;
+            s->outputs->size++;
+        }
+        
         tw_event *e = tw_event_new(self, 1, lp);
-        message *msg_e = tw_event_data(e);
-        msg_e->type = READ_MSG;
+        message *msg = tw_event_data(e);
+        msg->type = SETUP_MSG;
+        msg->data.gid = self;
         tw_event_send(e);
         
-        //event to start simulation
-        tw_event *f = tw_event_new(self, 10, lp);
-        message *msg_f = tw_event_data(f);
-        msg_f->type = SOURCE_MSG;
-        tw_event_send(f);
-    } else if (self == SINK_ID) {
-        s->gate_type = SINK_ID;
-    } else if (self < TOTAL_GATE_COUNT + 2) {
-        s->inputs = tw_calloc(TW_LOC, "gates_init_gate_lp_input", sizeof(struct vector) + MAX_GATE_INPUTS * sizeof(pair), 1);
-        s->outputs = tw_calloc(TW_LOC, "gates_init_gate_lp_output", sizeof(struct vector) + MAX_GATE_OUTPUTS * sizeof(pair), 1);
+        printf("%d is all done! my type is %d\n", self, s->gate_type);
     } else {
-        //printf("%d is an unused lp\n", self);
+        printf("%d is an unused lp\n", self);
     }
+    
 }
-
 
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     int self = lp->gid;
-    //printf("Processing event type %d on lp %d\n", msg->type, (int) lp->gid);
+    //printf("Processing event type %d on lp %d\n", in_msg->type, self);
     s->received_events++;
     
-    if (in_msg->type == READ_MSG) {
-        if (self == SOURCE_ID) {
-            char buf[LINE_LENGTH];
-            FILE *my_file = fopen("/Users/gonsie/Desktop/testfile.txt", "r");
-            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
-                fgets(buf, LINE_LENGTH, my_file);
-                
-                //partitioning system
-                int dest = i+2;
-                
-                tw_event *e = tw_event_new(dest, 1, lp);
-                message *msg = tw_event_data(e);
-                msg->type = READ_MSG;
-                strcpy(msg->data.line, buf);
-                tw_event_send(e);
-            }
-            fclose(my_file);
-        } else {
-            //printf("%d received the line %s", self, msg->data.line);
-            
-            char type[7];
-            int inputs[MAX_GATE_INPUTS];
-            int count = sscanf(in_msg->data.line, "%s %d %d %d %d", type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
-            
-            if (strncmp(type, "INPUT", 5) == 0){
-                s->gate_type = INPUT_GATE;
-                count++;
-                inputs[0] = SOURCE_ID;
-            } else if (strncmp(type, "OUTPUT", 6) == 0){
-                s->gate_type = OUTPUT_GATE;
-                s->outputs->size = 1;
-                s->outputs->array[0].gid = SINK_ID;
-            } else if (strncmp(type, "NOT", 3) == 0){
-                s->gate_type = NOT_GATE;
-            } else if (strncmp(type, "DFF", 3) == 0){
-                s->gate_type = DFF_GATE;
-            } else if (strncmp(type, "AND", 3) == 0){
-                s->gate_type = AND_GATE;
-            } else if (strncmp(type, "NAND", 4) == 0){
-                s->gate_type = NAND_GATE;
-            } else if (strncmp(type, "OR", 2) == 0){
-                s->gate_type = OR_GATE;
-            } else if (strncmp(type, "NOR", 3) == 0){
-                s->gate_type = NOR_GATE;
-            } else if (strncmp(type, "XOR", 3) == 0){
-                s->gate_type = XOR_GATE;
-            } else if (strncmp(type, "XNOR", 4) == 0){
-                s->gate_type = XNOR_GATE;
-            } else {
-                printf("ERROR: gate type unrecognized in %s", in_msg->data.line);
-            }
-            
-            
-            s->inputs->size = count - 1;
-            switch (s->inputs->size) {
-                case 4:
-                    s->inputs->array[3].gid = inputs[3];
-                case 3:
-                    s->inputs->array[2].gid = inputs[2];
-                case 2:
-                    s->inputs->array[1].gid = inputs[1];
-                case 1:
-                    s->inputs->array[0].gid = inputs[0];
-                default:
-                    break;
-            }
-            
-            
-            //send message to inputs telling them to output to me
+    if (in_msg->type == SETUP_MSG) {
+        if (in_msg->data.gid == self) {
             for (i = 0; i < s->inputs->size; i++) {
                 tw_event *e = tw_event_new(s->inputs->array[i].gid, 1, lp);
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
-                msg->data.p.gid = self;
+                msg->data.gid = self;
                 tw_event_send(e);
             }
+        } else {
+            s->outputs->array[s->outputs->size].gid = in_msg->data.gid;
+            s->outputs->size++;
         }
-    } else if (in_msg->type == SETUP_MSG) {
-        if (s->outputs->size == MAX_GATE_OUTPUTS) {
-            printf("ERROR: %d overflowed output vector\n", self);
-        }
-        
-        s->outputs->array[s->outputs->size].gid = in_msg->data.p.gid;
-        s->outputs->size++;
     } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
         //s->gate_function(s->inputs, s->outputs);
         int i;
@@ -196,8 +114,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event *e = tw_event_new(s->outputs->array[i].gid, 1, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
-            msg->data.p.gid = lp->gid;
-            msg->data.p.value = i%2;
+            msg->data.gid = lp->gid;
+            msg->data.value = i%2;
             tw_event_send(e);
         }
         
@@ -207,11 +125,11 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         tw_event_send(e);
     } else if (self == SINK_ID) {
         //s->gate_func(s->inputs, s->outputs);
-        //printf("SUNK\tgid: %d\tval: %d\n", msg->data.gid, msg->data.value);
+        //printf("SUNK\tgid: %d\tval: %d\n", (int) in_msg->data.gid, (int) in_msg->data.value);
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
-            if(s->inputs->array[i].gid == in_msg->data.p.gid){
-                s->inputs->array[i].value = in_msg->data.p.value;
+            if(s->inputs->array[i].gid == in_msg->data.gid){
+                s->inputs->array[i].value = in_msg->data.value;
                 //printf("RECV\tgid: %d\tval: %d\tor?: %d\tfrom: %d\n",lp->gid, s->inputs->array[i].value, msg->data.value, s->inputs->array[i].gid);
                 break;
             }
@@ -230,8 +148,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event *e = tw_event_new(s->outputs->array[i].gid, 0.5, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
-            msg->data.p.gid = lp->gid;
-            msg->data.p.value = s->outputs->array[i].value;
+            msg->data.gid = lp->gid;
+            msg->data.value = s->outputs->array[i].value;
             tw_event_send(e);
             //printf("SEND\tgid: %d\tgtype: %d\tsend: %d\tto: %d\n", lp->gid, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
         }
@@ -281,18 +199,10 @@ int gates_main(int argc, char* argv[]){
     tw_init(&argc, &argv);
     tw_define_lps(LP_COUNT, sizeof(message), 0);
     
-    //printf("%d should have finished io\n", g_tw_mynode);
-    
-    //printf("lps per pe: %d\n", (int) ceil((2 + TOTAL_GATE_COUNT) / (double)NP));
-    
-    //if (g_tw_mynode == 2) printf("testing that i can read line 5: %s", global_input[4]);
-    
-    
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
-        //printf("just messing with ross: id is %d from node %d\n", (int) g_tw_lp[i]->gid, g_tw_mynode);
-        //((gate_state*) g_tw_lp[i]->cur_state)->line_ptr = &global_input[i];
     }
+    
     //IO
     //printf("%d is attempting to start io\n", g_tw_mynode);
     MPI_File fh;
@@ -304,20 +214,14 @@ int gates_main(int argc, char* argv[]){
     //NOTE: for some reason count is off
     int start = 0;
     if (g_tw_mynode == 0) start = 2;
-    int offset = g_tw_mynode * LP_COUNT * (LINE_LENGTH-1);
+    int offset = ((g_tw_mynode * LP_COUNT) - 2) * (LINE_LENGTH-1);
     printf("offset is %d\n", offset);
-    for (i = 0; i < LP_COUNT && g_tw_mynode * LP_COUNT + i <= TOTAL_GATE_COUNT; i++) {
+    for (i = start; i < LP_COUNT && g_tw_mynode * LP_COUNT + i < TOTAL_GATE_COUNT + 2; i++) {
         MPI_File_iread_at(fh, offset + (i*LINE_LENGTH) - i, global_input[i], LINE_LENGTH-1, MPI_CHAR, &req);
-        //if (g_tw_mynode == 1) printf("<%d read line %s>", g_tw_mynode, global_input[i]);
-            }
+        //if (g_tw_mynode == 3) printf("<%d read line %s>", g_tw_mynode, global_input[i]);
+    }
     MPI_File_close(&fh);
     
-//    for (i = 0; i < g_tw_mynode; i++) {
-//        printf("%d is trying to do a strcpy for %d\n", (int) g_tw_mynode, i);
-//        strcpy(((gate_state *)g_tw_lp[i]->cur_state)->line_ptr, global_input[i]);
-//
-//    }
-//    
     
     tw_run();
     
