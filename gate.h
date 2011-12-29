@@ -15,12 +15,12 @@
 typedef char* string;
 
 
-typedef struct {
+typedef struct pair_t {
     int gid;
     int value;
 } pair;
 
-typedef struct vector {
+typedef struct vector_t {
     int size;
     pair array[];
 } *vector;
