@@ -208,7 +208,8 @@ int gates_main(int argc, char* argv[]){
     MPI_File fh;
     MPI_Request req;
     
-    char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
+    //char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
+    char filename[100] = "/home/gonsie/ccx_mpi.bench";
     MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     
     //NOTE: for some reason count is off
