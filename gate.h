@@ -41,7 +41,7 @@ void SOURCE_func(vector input, vector output){
 void SINK_func(vector input, vector output){
     int i;
     for(i = 0; i < input->size; i++){
-        printf("Received a %d, supposedly from gate with id %d.\n", input->array[i].value, input->array[i].gid);
+      //printf("Received a %d, supposedly from gate with id %d.\n", input->array[i].value, input->array[i].gid);
     }
 }
 

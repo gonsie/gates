@@ -36,6 +36,8 @@ void gates_init(gate_state *s, tw_lp *lp){
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         tw_event_send(e);
+	
+	printf("Source has completed init.\n");
     } else if (self == SINK_ID) {
         s->gate_type = SINK_GATE;
     } else if(self < TOTAL_GATE_COUNT + 2){
@@ -81,9 +83,9 @@ void gates_init(gate_state *s, tw_lp *lp){
         msg->data.gid = self;
         tw_event_send(e);
         
-        printf("%d is all done! my type is %d\n", self, s->gate_type);
+      //printf("%d is all done! my type is %d\n", self, s->gate_type);
     } else {
-        printf("%d is an unused lp\n", self);
+      //printf("%d is an unused lp\n", self);
     }
     
 }
@@ -109,6 +111,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
     } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
         //s->gate_function(s->inputs, s->outputs);
+        printf("Source doing a wave of inputs\n");
         int i;
         for (i = 0; i < s->outputs->size; i++) {
             tw_event *e = tw_event_new(s->outputs->array[i].gid, 1, lp);
@@ -197,6 +200,8 @@ int gates_main(int argc, char* argv[]){
     tw_opt_add(gates_opts);
     
     tw_init(&argc, &argv);
+    
+    g_tw_events_per_pe = 12000000;
     tw_define_lps(LP_COUNT, sizeof(message), 0);
     
     for (i = 0; i < g_tw_nlp; i++) {
