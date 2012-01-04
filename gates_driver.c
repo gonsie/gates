@@ -22,6 +22,9 @@ gate_func function_array[GATE_TYPE_COUNT] = {
 };
 
 char global_input[LP_COUNT][LINE_LENGTH + 1];
+unsigned int source_interval = 1;
+unsigned int sink_interval = 5;
+
 int error_count = 0;
 
 void gates_init(gate_state *s, tw_lp *lp){
@@ -43,7 +46,7 @@ void gates_init(gate_state *s, tw_lp *lp){
 	printf("Source has completed init.\n");
     } else if (self == SINK_ID) {
         s->gate_type = SINK_GATE;
-        tw_event *e = tw_event_new(self, 15, lp);
+        tw_event *e = tw_event_new(self, 10 + sink_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SINK_MSG;
 	msg->data.gid = self;
@@ -138,7 +141,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
         
-        tw_event *e = tw_event_new(SOURCE_ID, 1000000, lp);
+        tw_event *e = tw_event_new(SOURCE_ID, source_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         tw_event_send(e);
@@ -147,7 +150,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //printf("SUNK\tgid: %d\tval: %d\n", (int) in_msg->data.gid, (int) in_msg->data.value);
       if (in_msg->type == SINK_MSG) {
         printf("Sink has processed %d messages\n", s->received_events);
-        tw_event *e = tw_event_new(self, 50, lp);
+        tw_event *e = tw_event_new(self, sink_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SINK_MSG;
 	msg->data.gid = self;
@@ -216,6 +219,8 @@ tw_peid olsr_map(tw_lpid gid){
 
 const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),
+    TWOPT_UINT("source_interval", source_interval,"time between source sending waves of input"),
+    TWOPT_UINT("sink_interval", sink_interval, "time between reporting of sink statistics"),
     TWOPT_END(),
 };
 
