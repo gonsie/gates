@@ -20,6 +20,7 @@
 #define NP_COUNT 24           //4   12   24
 #define LP_COUNT 8792           //7   17584  8792 //calculated from TOTAL_GATE_COUNT and NP
 #define SOURCE_OUTPUTS 3305    //11  3305
+#define SINK_INPUTS 3205
 #define MAX_GATE_INPUTS 4    //4   4
 //#define MAX_GATE_OUTPUTS 1   //5214
 
@@ -47,6 +48,7 @@
 #define SETUP_MSG (1)
 #define LOGIC_CARY_MSG (2)
 #define LOGIC_CALC_MSG (3)
+#define SINK_MSG (4)
 
 //define logic type and value
 typedef int BOOL;

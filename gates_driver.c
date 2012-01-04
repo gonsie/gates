@@ -36,11 +36,17 @@ void gates_init(gate_state *s, tw_lp *lp){
         tw_event *e = tw_event_new(self, 10, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
+	msg->data.gid = self;
         tw_event_send(e);
 	
 	printf("Source has completed init.\n");
     } else if (self == SINK_ID) {
         s->gate_type = SINK_GATE;
+        tw_event *e = tw_event_new(self, 15, lp);
+        message *msg = tw_event_data(e);
+        msg->type = SINK_MSG;
+	msg->data.gid = self;
+        tw_event_send(e);
     } else if(self < TOTAL_GATE_COUNT + 2){
         int type = -1;
         int output_count = 0;
@@ -127,9 +133,17 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         tw_event_send(e);
-    } else if (self == SINK_ID) {
+    } else if (lp->gid == SINK_ID) {
         //s->gate_func(s->inputs, s->outputs);
         //printf("SUNK\tgid: %d\tval: %d\n", (int) in_msg->data.gid, (int) in_msg->data.value);
+      if (in_msg->type == SINK_MSG) {
+        printf("Sink has processed %d messages\n", s->received_events);
+        tw_event *e = tw_event_new(self, 5, lp);
+        message *msg = tw_event_data(e);
+        msg->type = SINK_MSG;
+	msg->data.gid = self;
+        tw_event_send(e);
+      }
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
