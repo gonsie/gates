@@ -138,6 +138,7 @@ typedef struct {
     vector outputs;
     
     int received_events;
+    int calc;
     
 } gate_state;
 

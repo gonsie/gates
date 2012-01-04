@@ -26,6 +26,7 @@ char global_input[LP_COUNT][LINE_LENGTH + 1];
 void gates_init(gate_state *s, tw_lp *lp){
     int self = lp->gid;
     s->received_events = 0;
+    s->calc = FALSE;
     
     if (self == SOURCE_ID) {
         s->gate_type = SOURCE_GATE;
@@ -122,7 +123,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
         
-        tw_event *e = tw_event_new(SOURCE_ID, 1, lp);
+        tw_event *e = tw_event_new(SOURCE_ID, 100, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         tw_event_send(e);
@@ -139,13 +140,16 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
         
         //If i have received any logic in, i need to recalculate & send my outputs
-        tw_event *e = tw_event_new(self, 0.5, lp);
-        message *msg =  tw_event_data(e);
-        msg->type = LOGIC_CALC_MSG;
-        tw_event_send(e);
+	if (s->calc == FALSE) {
+	  s->calc = TRUE;
+	  tw_event *e = tw_event_new(self, 0.5, lp);
+	  message *msg =  tw_event_data(e);
+	  msg->type = LOGIC_CALC_MSG;
+	  tw_event_send(e);
+	}
     } else if (in_msg->type == LOGIC_CALC_MSG) {
         function_array[s->gate_type](s->inputs, s->outputs);
-        
+        s->calc = FALSE;
         //send event to outputs
         for(i = 0; i < s->outputs->size; i++){
             tw_event *e = tw_event_new(s->outputs->array[i].gid, 0.5, lp);
