@@ -22,6 +22,7 @@ gate_func function_array[GATE_TYPE_COUNT] = {
 };
 
 char global_input[LP_COUNT][LINE_LENGTH + 1];
+int error_count = 0;
 
 void gates_init(gate_state *s, tw_lp *lp){
     int self = lp->gid;
@@ -53,14 +54,18 @@ void gates_init(gate_state *s, tw_lp *lp){
         int inputs[MAX_GATE_INPUTS];
         
         int count = sscanf(global_input[lp->id], "%d %d %d %d %d %d", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
-        
+        if (count < 2) {
+	  error_count++;
+	  printf("count is %d lp %d (locally %d) has line %s\n", self, (int) lp->id, global_input[lp->id]);
+	  return;
+	}
         s->gate_type = type;
         if (s->gate_type == INPUT_GATE) {
             inputs[0] = SOURCE_ID;
             count++;
         }
-        
-        s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + (count - 2) * sizeof(pair), 1);
+	
+        s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
         s->inputs->size = count - 2;
         
         switch (s->inputs->size) {
@@ -103,6 +108,10 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     //printf("Processing event type %d on lp %d\n", in_msg->type, self);
     s->received_events++;
     
+    if(lp->id == 0 && error_count != 0){
+      //tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, (int) g_tw_mynode);
+    }
+    
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
             for (i = 0; i < s->inputs->size; i++) {
@@ -129,7 +138,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
         
-        tw_event *e = tw_event_new(SOURCE_ID, 100, lp);
+        tw_event *e = tw_event_new(SOURCE_ID, 1000000, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         tw_event_send(e);
@@ -138,7 +147,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //printf("SUNK\tgid: %d\tval: %d\n", (int) in_msg->data.gid, (int) in_msg->data.value);
       if (in_msg->type == SINK_MSG) {
         printf("Sink has processed %d messages\n", s->received_events);
-        tw_event *e = tw_event_new(self, 5, lp);
+        tw_event *e = tw_event_new(self, 50, lp);
         message *msg = tw_event_data(e);
         msg->type = SINK_MSG;
 	msg->data.gid = self;
@@ -214,7 +223,7 @@ const tw_optdef gates_opts[] = {
 
 int gates_main(int argc, char* argv[]){
     int i;
-    
+
     tw_opt_add(gates_opts);
     
     tw_init(&argc, &argv);
@@ -226,26 +235,45 @@ int gates_main(int argc, char* argv[]){
         tw_lp_settype(i, &gates_lps[0]);
     }
     
-    //IO
-    //printf("%d is attempting to start io\n", g_tw_mynode);
-    MPI_File fh;
-    MPI_Request req;
     
     //char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
     char filename[100] = "/home/gonsie/ccx_mpi.bench";
-    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    
-    //NOTE: for some reason count is off
-    int start = 0;
-    if (g_tw_mynode == 0) start = 2;
-    int offset = ((g_tw_mynode * LP_COUNT) - 2) * (LINE_LENGTH-1);
-    printf("offset is %d\n", offset);
-    for (i = start; i < LP_COUNT && g_tw_mynode * LP_COUNT + i < TOTAL_GATE_COUNT + 2; i++) {
-        MPI_File_iread_at(fh, offset + (i*LINE_LENGTH) - i, global_input[i], LINE_LENGTH-1, MPI_CHAR, &req);
-        //if (g_tw_mynode == 3) printf("<%d read line %s>", g_tw_mynode, global_input[i]);
+    if (g_tw_synchronization_protocol == 1) {
+      //sequential
+      FILE *my_file = fopen(filename, "r");
+      for (i = 2; i < LP_COUNT; i++) {
+	fgets(global_input[i], LINE_LENGTH, my_file);
+      }
+      fclose(my_file);
+    } else {
+      //IO
+      //printf("%d is attempting to start io\n", g_tw_mynode);
+      MPI_File fh;
+      MPI_Request req;
+      
+      MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+      
+      //NOTE: for some reason count is off
+      int line_start, line_end;
+      int current_id;
+      if (g_tw_mynode == 0) {
+	line_start = 0;
+	line_end = LP_COUNT - 2;
+	current_id = 2;
+      } else {
+	line_start = (g_tw_mynode * LP_COUNT) - 2;
+	line_end = ((g_tw_mynode + 1) * LP_COUNT) - 2;
+	current_id = 0;
+      }
+      if (line_end > TOTAL_GATE_COUNT) {
+	line_end = TOTAL_GATE_COUNT;
+      }
+      printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
+      for (i = line_start; i < line_end; i++, current_id++) {
+	MPI_File_iread_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
+      }
+      MPI_File_close(&fh);
     }
-    MPI_File_close(&fh);
-    
     
     tw_run();
     
