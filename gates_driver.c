@@ -105,6 +105,16 @@ void gates_init(gate_state *s, tw_lp *lp){
     
 }
 
+tw_stime clock_round(tw_stime now){
+  int floor_now = now;
+  double diff = now - ((double) floor_now);
+  if (diff > 0.5) {
+    return 1.0 - diff;
+  } else {
+    return -1.0 * diff;
+  }
+}
+
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     int self = lp->gid;
@@ -112,13 +122,14 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     s->received_events++;
     
     if(lp->id == 0 && error_count != 0){
-      //tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, (int) g_tw_mynode);
+      tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, (int) g_tw_mynode);
     }
     
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
+	  double jitter = 0.8 / (double)(s->inputs->size+1.0);
             for (i = 0; i < s->inputs->size; i++) {
-                tw_event *e = tw_event_new(s->inputs->array[i].gid, 1, lp);
+	        tw_event *e = tw_event_new(s->inputs->array[i].gid, (i+1) * jitter, lp);
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
                 msg->data.gid = self;
@@ -132,8 +143,10 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //s->gate_function(s->inputs, s->outputs);
         printf("Source doing a wave of inputs\n");
         int i;
-        for (i = 0; i < s->outputs->size; i++) {
-            tw_event *e = tw_event_new(s->outputs->array[i].gid, 1, lp);
+	double jitter = 0.8 / (double)(s->outputs->size+1.0);
+        printf("  jitter is %f, sending to %d gates\n", jitter, s->outputs->size);
+	for (i = 0; i < s->outputs->size; i++) {
+	    tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = lp->gid;
@@ -168,7 +181,11 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //If i have received any logic in, i need to recalculate & send my outputs
 	if (s->calc == FALSE) {
 	  s->calc = TRUE;
-	  tw_event *e = tw_event_new(self, 0.5, lp);
+	  tw_stime clock = clock_round(tw_now(lp));
+	  if (clock <= -0.5) {
+	      tw_error(TW_LOC,"clock error on %d",self);
+	  }
+	  tw_event *e = tw_event_new(self, clock + 0.5, lp);
 	  message *msg =  tw_event_data(e);
 	  msg->type = LOGIC_CALC_MSG;
 	  tw_event_send(e);
@@ -177,8 +194,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         function_array[s->gate_type](s->inputs, s->outputs);
         s->calc = FALSE;
         //send event to outputs
-        for(i = 0; i < s->outputs->size; i++){
-            tw_event *e = tw_event_new(s->outputs->array[i].gid, 0.5, lp);
+	double jitter = 0.8 / (double)(s->outputs->size+1.0);
+	for(i = 0; i < s->outputs->size; i++){
+	    tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = lp->gid;
