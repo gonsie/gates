@@ -40,16 +40,16 @@ void gates_init(gate_state *s, tw_lp *lp){
         tw_event *e = tw_event_new(self, 10, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
-	msg->data.gid = self;
+        msg->data.gid = self;
         tw_event_send(e);
-	
-	printf("Source has completed init.\n");
+        
+        printf("Source has completed init.\n");
     } else if (self == SINK_ID) {
         s->gate_type = SINK_GATE;
         tw_event *e = tw_event_new(self, 10 + sink_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SINK_MSG;
-	msg->data.gid = self;
+        msg->data.gid = self;
         tw_event_send(e);
     } else if(self < TOTAL_GATE_COUNT + 2){
         int type = -1;
@@ -58,16 +58,16 @@ void gates_init(gate_state *s, tw_lp *lp){
         
         int count = sscanf(global_input[lp->id], "%d %d %d %d %d %d", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
         if (count < 2) {
-	  error_count++;
-	  printf("count is %d lp %d (locally %d) has line %s\n", self, (int) lp->id, global_input[lp->id]);
-	  return;
-	}
+            error_count++;
+            printf("count is %d lp %d (locally %d) has line %s\n", self, (int) lp->id, global_input[lp->id]);
+            return;
+        }
         s->gate_type = type;
         if (s->gate_type == INPUT_GATE) {
             inputs[0] = SOURCE_ID;
             count++;
         }
-	
+        
         s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
         s->inputs->size = count - 2;
         
@@ -98,21 +98,21 @@ void gates_init(gate_state *s, tw_lp *lp){
         msg->data.gid = self;
         tw_event_send(e);
         
-      //printf("%d is all done! my type is %d\n", self, s->gate_type);
+        //printf("%d is all done! my type is %d\n", self, s->gate_type);
     } else {
-      //printf("%d is an unused lp\n", self);
+        //printf("%d is an unused lp\n", self);
     }
     
 }
 
 tw_stime clock_round(tw_stime now){
-  int floor_now = now;
-  double diff = now - ((double) floor_now);
-  if (diff > 0.5) {
-    return 1.0 - diff;
-  } else {
-    return -1.0 * diff;
-  }
+    int floor_now = now;
+    double diff = now - ((double) floor_now);
+    if (diff > 0.5) {
+        return 1.0 - diff;
+    } else {
+        return -1.0 * diff;
+    }
 }
 
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
@@ -122,14 +122,14 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     s->received_events++;
     
     if(lp->id == 0 && error_count != 0){
-      tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, (int) g_tw_mynode);
+        tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, (int) g_tw_mynode);
     }
     
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
-	  double jitter = 0.8 / (double)(s->inputs->size+1.0);
+            double jitter = 0.8 / (double)(s->inputs->size+1.0);
             for (i = 0; i < s->inputs->size; i++) {
-	        tw_event *e = tw_event_new(s->inputs->array[i].gid, (i+1) * jitter, lp);
+                tw_event *e = tw_event_new(s->inputs->array[i].gid, (i+1) * jitter, lp);
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
                 msg->data.gid = self;
@@ -143,10 +143,10 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //s->gate_function(s->inputs, s->outputs);
         printf("Source doing a wave of inputs\n");
         int i;
-	double jitter = 0.8 / (double)(s->outputs->size+1.0);
+        double jitter = 0.8 / (double)(s->outputs->size+1.0);
         printf("  jitter is %f, sending to %d gates\n", jitter, s->outputs->size);
-	for (i = 0; i < s->outputs->size; i++) {
-	    tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
+        for (i = 0; i < s->outputs->size; i++) {
+            tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = lp->gid;
@@ -161,14 +161,14 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (lp->gid == SINK_ID) {
         //s->gate_func(s->inputs, s->outputs);
         //printf("SUNK\tgid: %d\tval: %d\n", (int) in_msg->data.gid, (int) in_msg->data.value);
-      if (in_msg->type == SINK_MSG) {
-        printf("Sink has processed %d messages\n", s->received_events);
-        tw_event *e = tw_event_new(self, sink_interval, lp);
-        message *msg = tw_event_data(e);
-        msg->type = SINK_MSG;
-	msg->data.gid = self;
-        tw_event_send(e);
-      }
+        if (in_msg->type == SINK_MSG) {
+            printf("Sink has processed %d messages\n", s->received_events);
+            tw_event *e = tw_event_new(self, sink_interval, lp);
+            message *msg = tw_event_data(e);
+            msg->type = SINK_MSG;
+            msg->data.gid = self;
+            tw_event_send(e);
+        }
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
@@ -179,24 +179,21 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
         
         //If i have received any logic in, i need to recalculate & send my outputs
-	if (s->calc == FALSE) {
-	  s->calc = TRUE;
-	  tw_stime clock = clock_round(tw_now(lp));
-	  if (clock <= -0.5) {
-	      tw_error(TW_LOC,"clock error on %d",self);
-	  }
-	  tw_event *e = tw_event_new(self, clock + 0.5, lp);
-	  message *msg =  tw_event_data(e);
-	  msg->type = LOGIC_CALC_MSG;
-	  tw_event_send(e);
-	}
+        if (s->calc == FALSE) {
+            s->calc = TRUE;
+            tw_stime clock = clock_round(tw_now(lp));
+            tw_event *e = tw_event_new(self, clock + 0.5, lp);
+            message *msg =  tw_event_data(e);
+            msg->type = LOGIC_CALC_MSG;
+            tw_event_send(e);
+        }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
         function_array[s->gate_type](s->inputs, s->outputs);
         s->calc = FALSE;
         //send event to outputs
-	double jitter = 0.8 / (double)(s->outputs->size+1.0);
-	for(i = 0; i < s->outputs->size; i++){
-	    tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
+        double jitter = 0.8 / (double)(s->outputs->size+1.0);
+        for(i = 0; i < s->outputs->size; i++){
+            tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = lp->gid;
@@ -246,7 +243,7 @@ const tw_optdef gates_opts[] = {
 
 int gates_main(int argc, char* argv[]){
     int i;
-
+    
     tw_opt_add(gates_opts);
     
     tw_init(&argc, &argv);
@@ -262,40 +259,40 @@ int gates_main(int argc, char* argv[]){
     //char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
     char filename[100] = "/home/gonsie/ccx_mpi.bench";
     if (g_tw_synchronization_protocol == 1) {
-      //sequential
-      FILE *my_file = fopen(filename, "r");
-      for (i = 2; i < LP_COUNT; i++) {
-	fgets(global_input[i], LINE_LENGTH, my_file);
-      }
-      fclose(my_file);
+        //sequential
+        FILE *my_file = fopen(filename, "r");
+        for (i = 2; i < LP_COUNT; i++) {
+            fgets(global_input[i], LINE_LENGTH, my_file);
+        }
+        fclose(my_file);
     } else {
-      //IO
-      //printf("%d is attempting to start io\n", g_tw_mynode);
-      MPI_File fh;
-      MPI_Request req;
-      
-      MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-      
-      //NOTE: for some reason count is off
-      int line_start, line_end;
-      int current_id;
-      if (g_tw_mynode == 0) {
-	line_start = 0;
-	line_end = LP_COUNT - 2;
-	current_id = 2;
-      } else {
-	line_start = (g_tw_mynode * LP_COUNT) - 2;
-	line_end = ((g_tw_mynode + 1) * LP_COUNT) - 2;
-	current_id = 0;
-      }
-      if (line_end > TOTAL_GATE_COUNT) {
-	line_end = TOTAL_GATE_COUNT;
-      }
-      printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
-      for (i = line_start; i < line_end; i++, current_id++) {
-	MPI_File_iread_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
-      }
-      MPI_File_close(&fh);
+        //IO
+        //printf("%d is attempting to start io\n", g_tw_mynode);
+        MPI_File fh;
+        MPI_Request req;
+        
+        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+        
+        //NOTE: for some reason count is off
+        int line_start, line_end;
+        int current_id;
+        if (g_tw_mynode == 0) {
+            line_start = 0;
+            line_end = LP_COUNT - 2;
+            current_id = 2;
+        } else {
+            line_start = (g_tw_mynode * LP_COUNT) - 2;
+            line_end = ((g_tw_mynode + 1) * LP_COUNT) - 2;
+            current_id = 0;
+        }
+        if (line_end > TOTAL_GATE_COUNT) {
+            line_end = TOTAL_GATE_COUNT;
+        }
+        printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
+        for (i = line_start; i < line_end; i++, current_id++) {
+            MPI_File_iread_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
+        }
+        MPI_File_close(&fh);
     }
     
     tw_run();
