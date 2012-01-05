@@ -37,7 +37,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         s->outputs = tw_calloc(TW_LOC, "gates_init_source_lp", sizeof(vector) + SOURCE_OUTPUTS * sizeof(pair), 1);
         
         //event to start simulation
-        tw_event *e = tw_event_new(self, 10, lp);
+        tw_event *e = tw_event_new(self, 10.5, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         msg->data.gid = self;
@@ -59,7 +59,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         int count = sscanf(global_input[lp->id], "%d %d %d %d %d %d", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
         if (count < 2) {
             error_count++;
-            printf("count is %d lp %d (locally %d) has line %s\n", self, (int) lp->id, global_input[lp->id]);
+            printf("count is %d lp %d (locally %d) has line %s\n", count, self, (int) lp->id, global_input[lp->id]);
             return;
         }
         s->gate_type = type;
@@ -127,9 +127,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
-            double jitter = 0.8 / (double)(s->inputs->size+1.0);
             for (i = 0; i < s->inputs->size; i++) {
-                tw_event *e = tw_event_new(s->inputs->array[i].gid, (i+1) * jitter, lp);
+                double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+                tw_event *e = tw_event_new(s->inputs->array[i].gid, MESSAGE_PAD + jitter, lp);
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
                 msg->data.gid = self;
@@ -143,10 +143,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //s->gate_function(s->inputs, s->outputs);
         printf("Source doing a wave of inputs\n");
         int i;
-        double jitter = 0.8 / (double)(s->outputs->size+1.0);
-        printf("  jitter is %f, sending to %d gates\n", jitter, s->outputs->size);
         for (i = 0; i < s->outputs->size; i++) {
-            tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
+            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+            tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = lp->gid;
@@ -181,8 +180,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //If i have received any logic in, i need to recalculate & send my outputs
         if (s->calc == FALSE) {
             s->calc = TRUE;
-            tw_stime clock = clock_round(tw_now(lp));
-            tw_event *e = tw_event_new(self, clock + 0.5, lp);
+            double jitter_offset = clock_round(tw_now(lp));
+            tw_event *e = tw_event_new(self, jitter_offset + MESSAGE_PAD, lp);
             message *msg =  tw_event_data(e);
             msg->type = LOGIC_CALC_MSG;
             tw_event_send(e);
@@ -191,9 +190,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         function_array[s->gate_type](s->inputs, s->outputs);
         s->calc = FALSE;
         //send event to outputs
-        double jitter = 0.8 / (double)(s->outputs->size+1.0);
         for(i = 0; i < s->outputs->size; i++){
-            tw_event *e = tw_event_new(s->outputs->array[i].gid, (i+1) * jitter, lp);
+            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+            tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = lp->gid;
@@ -249,15 +248,16 @@ int gates_main(int argc, char* argv[]){
     tw_init(&argc, &argv);
     
     g_tw_events_per_pe = 12000000;
+    g_tw_lookahead = MESSAGE_PAD;
     tw_define_lps(LP_COUNT, sizeof(message), 0);
     
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
     }
     
-    
+    char filename[100] = "/Users/gonsie/Desktop/ccx_mpi.bench";
     //char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
-    char filename[100] = "/home/gonsie/ccx_mpi.bench";
+    //char filename[100] = "/home/gonsie/ccx_mpi.bench";
     if (g_tw_synchronization_protocol == 1) {
         //sequential
         FILE *my_file = fopen(filename, "r");
