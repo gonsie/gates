@@ -59,7 +59,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         int count = sscanf(global_input[lp->id], "%d %d %d %d %d %d", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
         if (count < 2) {
             error_count++;
-            printf("count is %d lp %d (locally %d) has line %s\n", count, self, (int) lp->id, global_input[lp->id]);
+            if (error_count < 10) printf("count is %d lp %d (locally %d) has line %s\n", count, self, (int) lp->id, global_input[lp->id]);
             return;
         }
         s->gate_type = type;
@@ -255,9 +255,9 @@ int gates_main(int argc, char* argv[]){
         tw_lp_settype(i, &gates_lps[0]);
     }
     
-    char filename[100] = "/Users/gonsie/Desktop/ccx_mpi.bench";
+    //char filename[100] = "/Users/gonsie/Desktop/ccx_mpi.bench";
     //char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
-    //char filename[100] = "/home/gonsie/ccx_mpi.bench";
+    char filename[100] = "/home/gonsie/ccx_mpi.bench";
     if (g_tw_synchronization_protocol == 1) {
         //sequential
         FILE *my_file = fopen(filename, "r");
@@ -269,7 +269,7 @@ int gates_main(int argc, char* argv[]){
         //IO
         //printf("%d is attempting to start io\n", g_tw_mynode);
         MPI_File fh;
-        MPI_Request req;
+        MPI_Status req;
         
         MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
         
@@ -290,7 +290,7 @@ int gates_main(int argc, char* argv[]){
         }
         printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
         for (i = line_start; i < line_end; i++, current_id++) {
-            MPI_File_iread_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
+            MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
         }
         MPI_File_close(&fh);
     }
