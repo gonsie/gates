@@ -3,8 +3,11 @@
 //Rensselaer Polytechnic Institute
 
 #include <stdio.h>
+#include <libgen.h>
+
 #include "ross.h"
 #include "gate.h"
+#include "run_config.h"
 
 gate_func function_array[GATE_TYPE_COUNT] = {
     &SOURCE_func,
@@ -255,12 +258,12 @@ int gates_main(int argc, char* argv[]){
         tw_lp_settype(i, &gates_lps[0]);
     }
     
-    //char filename[100] = "/Users/gonsie/Desktop/ccx_mpi.bench";
-    //char filename[100] = "/Users/elsagonsiorowski/Desktop/MY_ROSS/testfile.txt";
-    char filename[100] = "/home/gonsie/ccx_mpi.bench";
+    char filename[100] = "/ccx_mpi.bench";
+    char *fullpath = dirname(argv[0]);
+    strcat(fullpath, filename);
     if (g_tw_synchronization_protocol == 1) {
         //sequential
-        FILE *my_file = fopen(filename, "r");
+        FILE *my_file = fopen(fullpath, "r");
         for (i = 2; i < LP_COUNT; i++) {
             fgets(global_input[i], LINE_LENGTH, my_file);
         }
@@ -271,7 +274,7 @@ int gates_main(int argc, char* argv[]){
         MPI_File fh;
         MPI_Status req;
         
-        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+        MPI_File_open(MPI_COMM_WORLD, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
         
         //NOTE: for some reason count is off
         int line_start, line_end;

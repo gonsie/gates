@@ -1,0 +1,3 @@
+#define TOTAL_GATE_COUNT 211001
+#define NP_COUNT 2
+#define LP_COUNT 105502

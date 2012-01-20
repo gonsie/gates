@@ -1,11 +1,29 @@
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
+IF(NOT np)
+       SET(_np 1 CACHE INTERNAL "sequential" FORCE)
+ELSE(NOT np)
+	SET(_np ${np} CACHE INTERNAL "parallel number of processors" FORCE)	
+ENDIF(NOT np)
+UNSET(np CACHE)
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/ccx_mpi.bench ${CMAKE_CURRENT_BINARY_DIR}/ccx_mpi.bench COPYONLY)
+
+ADD_CUSTOM_COMMAND(
+	OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h
+	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/run_config.cmake -Dnp=${_np}
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ccx_mpi.bench
+)
+
 SET(gates_srcs
-	gates_driver.c  
+	gates_driver.c 
 	gate.h
 	ptwHeader.h
 )
 
-ADD_EXECUTABLE(gates ${gates_srcs})
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h 
+	PROPERTIES GENERATED true)
+ 
+ADD_EXECUTABLE(gates ${gates_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 TARGET_LINK_LIBRARIES(gates ROSS m)
