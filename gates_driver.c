@@ -291,7 +291,7 @@ int gates_main(int argc, char* argv[]){
         if (line_end > TOTAL_GATE_COUNT) {
             line_end = TOTAL_GATE_COUNT;
         }
-        printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
+	//        printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
         for (i = line_start; i < line_end; i++, current_id++) {
             MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
         }
