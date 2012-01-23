@@ -250,7 +250,7 @@ int gates_main(int argc, char* argv[]){
     
     tw_init(&argc, &argv);
     
-    g_tw_events_per_pe = 12000000;
+    g_tw_events_per_pe = LP_COUNT * MAX_GATE_INPUTS + SOURCE_OUTPUTS * 2 + 32000;
     g_tw_lookahead = MESSAGE_PAD;
     tw_define_lps(LP_COUNT, sizeof(message), 0);
     
