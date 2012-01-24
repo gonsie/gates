@@ -1,0 +1,4 @@
+#define TOTAL_GATE_COUNT @_ngates@
+#define NP_COUNT @_np@
+#define LP_COUNT @_nlp@
+#define LINE_LENGTH @_ll@
