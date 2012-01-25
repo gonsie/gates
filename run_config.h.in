@@ -1,4 +1,5 @@
 #define TOTAL_GATE_COUNT @_ngates@
 #define NP_COUNT @_np@
 #define LP_COUNT @_nlp@
+#define EXTRA_LP_COUNT @_xlp@
 #define LINE_LENGTH @_ll@
