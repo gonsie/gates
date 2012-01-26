@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <libgen.h>
+#include <assert.h>
 
 #include "ross.h"
 #include "gate.h"
@@ -24,7 +25,7 @@ gate_func function_array[GATE_TYPE_COUNT] = {
     &XNOR_func,
 };
 
-char global_input[LP_COUNT][LINE_LENGTH + 1];
+char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 unsigned int source_interval = 1;
 unsigned int sink_interval = 5;
 
@@ -217,7 +218,63 @@ void gates_final(gate_state *s, tw_lp *lp){
 }
 
 tw_peid gates_map(tw_lpid gid){
-    return (tw_peid)gid / g_tw_nlp;
+    if (gid >= EXTRA_LP_COUNT * (LP_COUNT + 1)) {
+        return (tw_peid) ((gid - EXTRA_LP_COUNT) / LP_COUNT);
+    } else {
+        return (tw_peid) gid / (LP_COUNT + 1);
+    }
+}
+
+extern unsigned int nkp_per_pe;
+#define VERIFY_MAPPING 1
+void gates_custom_mapping(void){
+    tw_pe *pe;
+    int nlp_per_kp;
+    int lpid, kpid;
+    int i, j;
+    
+    nlp_per_kp = ceil((double) g_tw_nlp / (double) g_tw_nkp);
+    if(!nlp_per_kp) tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
+    
+    g_tw_lp_offset = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT);
+
+#if VERIFY_MAPPING
+    printf("Node %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
+#endif
+    
+    for (kpid = 0, lpid = 0, pe = NULL; pe = tw_pe_next(pe); ) {
+        
+        for (i = 0; i < nkp_per_pe; i++, kpid++) {
+            tw_kp_onpe(kpid, pe);
+            
+            for (j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
+                tw_lp_onpe(lpid, pe, g_tw_lp_offset + lpid);
+                tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
+#if VERIFY_MAPPING
+                if (0 == j % 20000) {
+                    printf("Node %d\tPE %d\tKP %d\t%d\n", g_tw_mynode, pe->id, kpid, (int )lpid + g_tw_lp_offset);
+                }
+#endif
+            }
+        }
+    }
+    
+    if (!g_tw_lp[g_tw_nlp - 1]) {
+        tw_error(TW_LOC, "Not all LPs defined! (g_tw_nlp=%d)", g_tw_nlp);
+    }
+    
+    if (g_tw_lp[g_tw_nlp - 1]->gid != g_tw_lp_offset + g_tw_nlp - 1) {
+        tw_error(TW_LOC, "LPs not sequentially enumerated!");
+    }
+}
+
+tw_lp * gates_mapping_to_lp(tw_lpid lpid){
+    assert(lpid >= 0);
+    assert(lpid < LP_COUNT * tw_nnodes() + EXTRA_LP_COUNT);
+    
+    int id = lpid - g_tw_lp_offset;
+    
+    return g_tw_lp[id];
 }
 
 tw_lptype gates_lps[] = {
@@ -229,10 +286,6 @@ tw_lptype gates_lps[] = {
         sizeof(gate_state)  },
     { 0 },
 };
-
-tw_peid olsr_map(tw_lpid gid){
-    return (tw_peid)gid / g_tw_nlp;
-}
 
 const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),
@@ -250,10 +303,19 @@ int gates_main(int argc, char* argv[]){
     
     tw_init(&argc, &argv);
     
+    g_tw_mapping = CUSTOM;
+    g_tw_custom_initial_mapping = &gates_custom_mapping;
+    g_tw_custom_lp_global_to_local_map = &gates_mapping_to_lp;
+    
     g_tw_events_per_pe = LP_COUNT * MAX_GATE_INPUTS + SOURCE_OUTPUTS * 2 + 32000;
     g_tw_lookahead = 0.09;
-    tw_define_lps(LP_COUNT, sizeof(message), 0);
     
+    g_tw_nlp = LP_COUNT;
+    if (g_tw_mynode < EXTRA_LP_COUNT) {
+        g_tw_nlp++;
+    }
+    
+    tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
     }
@@ -281,17 +343,18 @@ int gates_main(int argc, char* argv[]){
         int current_id;
         if (g_tw_mynode == 0) {
             line_start = 0;
-            line_end = LP_COUNT - 2;
+            line_end = g_tw_nlp - 2;
             current_id = 2;
         } else {
-            line_start = (g_tw_mynode * LP_COUNT) - 2;
-            line_end = ((g_tw_mynode + 1) * LP_COUNT) - 2;
+            line_start = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT) - 2;
+            line_end = line_start + g_tw_nlp;
             current_id = 0;
         }
         if (line_end > TOTAL_GATE_COUNT) {
+            printf("ERROR: %d wants to read extra lines\n", g_tw_mynode);
             line_end = TOTAL_GATE_COUNT;
         }
-	//        printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
+//        printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
         for (i = line_start; i < line_end; i++, current_id++) {
             MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
         }
