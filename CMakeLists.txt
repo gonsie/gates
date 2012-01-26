@@ -22,17 +22,14 @@ MATH(EXPR _ng "${_ngates} + 2")
 MATH(EXPR _nlp "${_ng}/${_np}")
 MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_np})")
 
-#EXECUTE_PROCESS(COMMAND python -c "from math import ceil; print int(ceil(${_ng}/float(${_np})))"
-#    OUTPUT_VARIABLE _nlp OUTPUT_STRIP_TRAILING_WHITESPACE)
-
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_SOURCE_DIR}/ccx_mpi.bench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
 MATH(EXPR _ll  "${_linelen} + 1")
 
-MESSAGE("configure_file ${_ngates} ${_np} ${_nlp} ${_xlp} ${_ll}")
+#MESSAGE("configure_file ${_ngates} ${_np} ${_nlp} ${_xlp} ${_ll}")
 
+# write the header with variables
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
-
 
 SET(gates_srcs
 	gates_driver.c 
