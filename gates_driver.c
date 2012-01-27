@@ -153,7 +153,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = lp->gid;
-            msg->data.value = i%2;
+            msg->data.value = (tw_rand_unif(lp->rng) < 0.5) ? 0 : 1;
             tw_event_send(e);
         }
         
