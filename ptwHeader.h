@@ -62,5 +62,7 @@ typedef int LOGIC;
 //sim settings
 #define MESSAGE_PAD (0.4)
 
+//function macros
+#define LOGIC_NOT(x) ((x) + 1) % 2
 
 #endif

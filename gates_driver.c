@@ -192,7 +192,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
-        function_array[s->gate_type](s->inputs, s->outputs);
+        s->stat_output_change += function_array[s->gate_type](s->inputs, s->outputs);
         s->calc = FALSE;
         //send event to outputs
         for(i = 0; i < s->outputs->size; i++){

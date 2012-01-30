@@ -32,100 +32,153 @@ typedef struct {
 
 
 
-typedef void (*gate_func)(vector input, vector output);
+typedef int (*gate_func)(vector input, vector output);
 //assuming boolean (0/1) logic for now
+//function returns true or false if the output value has changed
 
-void SOURCE_func(vector input, vector output){
+int SOURCE_func(vector input, vector output){
+    return 0;
 }
 
-void SINK_func(vector input, vector output){
+int SINK_func(vector input, vector output){
     int i;
     for(i = 0; i < input->size; i++){
       //printf("Received a %d, supposedly from gate with id %d.\n", input->array[i].value, input->array[i].gid);
     }
+    return 0;
 }
 
-void INPUT_func(vector input, vector output){
+int INPUT_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value != input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
     int i;
     for (i = 0; i < input->size; i++) {
         output->array[i].value = input->array[i].value;
     }
+    
+    return change_flag;
 }
 
-void OUTPUT_func(vector input, vector output){
+int OUTPUT_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value != input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
     int i;
     for (i = 0; i < input->size; i++) {
         output->array[i].value = input->array[i].value;
     }
+    
+    return change_flag;
 }
 
-void NOT_func(vector input, vector output){
+int NOT_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value == input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
     int i;
     for(i = 0; i < input->size; i++){
-        if (input->array[i].value) {
-            output->array[i].value = FALSE;
-        } else {
-            output->array[i].value = TRUE;
-        }
+        output->array[i].value = LOGIC_NOT(input->array[i].value);
     }
+    
+    return change_flag;
 }
 
-void DFF_func(vector input, vector output){
+int DFF_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value != input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
     int i;
     for (i = 0; i < input->size; i++) {
         output->array[i].value = input->array[i].value;
     }
+    
+    return change_flag;
 }
 
-void AND_func(vector input, vector output){
+int AND_func(vector input, vector output){
     int i;
     for(i = 0; i < input->size; i++){
         if (!input->array[i].value) {
-            output->array[0].value = FALSE;
-            return;
+            if (output->array[0].value == FALSE) {
+                return FALSE;
+            } else {
+                output->array[0].value = FALSE;
+                return TRUE;
+            }
         }
     }
-    output->array[0].value = TRUE;
+    if (output->array[0].value == TRUE) {
+        return FALSE;
+    } else {
+        output->array[0].value = TRUE;
+        return TRUE;
+    }
 }
 
-void NAND_func(vector input, vector output){
-    AND_func(input, output);
+int NAND_func(vector input, vector output){
+    int and_change = AND_func(input, output);
     NOT_func(output, output);
+    return LOGIC_NOT(and_change);
 }
 
-void OR_func(vector input, vector output){
+int OR_func(vector input, vector output){
     int i;
     for (i = 0; i < input->size; i++) {
         if (input->array[i].value) {
-            output->array[0].value = TRUE;
-            return;
+            if (output->array[0].value == TRUE) {
+                return FALSE;
+            } else {
+                output->array[0].value = TRUE;
+                return TRUE;
+            }
         }
     }
-    output->array[0].value = FALSE;
+    if (output->array[0].value == FALSE) {
+        return FALSE;
+    } else {
+        output->array[0].value = FALSE;
+        return TRUE;
+    }
 }
 
-void NOR_func(vector input, vector output){
-    OR_func(input, output);
+int NOR_func(vector input, vector output){
+    int or_change = OR_func(input, output);
     NOT_func(output, output);
+    return LOGIC_NOT(or_change);
 }
 
-void XOR_func(vector input, vector output){
+int XOR_func(vector input, vector output){
     int i, count;
     for (i = 0, count = 0; i < input->size; i++) {
         if (input->array[i].value) {
             count++;
         }
     }
-    if (count % 2 == 1) {
-        output->array[0].value = TRUE;
-    } else {
-        output->array[0].value = FALSE;
+    
+    if (output->array[0].value != count % 2) {
+        output->array[0].value = count % 2;
+        return TRUE;
     }
+    return FALSE;
 }
 
-void XNOR_func(vector input, vector output){
-    XOR_func(input, output);
+int XNOR_func(vector input, vector output){
+    int xor_change = XOR_func(input, output);
     NOT_func(output, output);
+    return LOGIC_NOT(xor_change);
 }
 
 typedef struct {
@@ -139,6 +192,7 @@ typedef struct {
     
     int received_events;
     int calc;
+    int stat_output_change;
     
 } gate_state;
 
