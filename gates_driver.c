@@ -185,7 +185,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         if (s->calc == FALSE) {
             s->calc = TRUE;
             double jitter_offset = clock_round(tw_now(lp));
-	    if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %d is sending a message at a bad time: %d\n", self, MESSAGE_PAD + jitter_offset);
+	    if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %d is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
             tw_event *e = tw_event_new(self, jitter_offset + MESSAGE_PAD, lp);
             message *msg =  tw_event_data(e);
             msg->type = LOGIC_CALC_MSG;
@@ -243,7 +243,7 @@ void gates_custom_mapping(void){
     printf("Node %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
 #endif
     
-    for (kpid = 0, lpid = 0, pe = NULL; pe = tw_pe_next(pe); ) {
+    for (kpid = 0, lpid = 0, pe = NULL; (pe = tw_pe_next(pe)); ) {
         
         for (i = 0; i < nkp_per_pe; i++, kpid++) {
             tw_kp_onpe(kpid, pe);
