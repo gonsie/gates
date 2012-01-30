@@ -211,9 +211,16 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 }
 
 void gates_final(gate_state *s, tw_lp *lp){
+    int self = lp->gid;
+    
     //wrap up
     if (lp->gid == SOURCE_ID || lp->gid == SINK_ID) {
-        printf("%d processed %d events\n", (int) lp->gid, s->received_events);
+        printf("%d processed %d events\n", self, s->received_events);
+    }
+    
+    
+    if (s->stat_output_change > g_tw_ts_end / source_interval) {
+        printf("%d changed %d times\n", self, s->stat_output_change);
     }
     return;
 }
