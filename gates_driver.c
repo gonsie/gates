@@ -140,7 +140,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 tw_event_send(e);
             }
         } else {
-            s->outputs->array[s->outputs->size].gid = in_msg->data.gid;
+            SWAP(s->outputs->array[s->outputs->size].gid, in_msg->data.gid);
             s->outputs->size++;
         }
     } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
@@ -175,17 +175,17 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
-                s->inputs->array[i].value = in_msg->data.value;
-                //printf("RECV\tgid: %d\tval: %d\tor?: %d\tfrom: %d\n",lp->gid, s->inputs->array[i].value, msg->data.value, s->inputs->array[i].gid);
+                SWAP(s->inputs->array[i].value, in_msg->data.value);
                 break;
             }
         }
         
         //If i have received any logic in, i need to recalculate & send my outputs
         if (s->calc == FALSE) {
+            bf->c0 = 1;
             s->calc = TRUE;
             double jitter_offset = clock_round(tw_now(lp));
-	    if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %d is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
+            if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %d is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
             tw_event *e = tw_event_new(self, jitter_offset + MESSAGE_PAD, lp);
             message *msg =  tw_event_data(e);
             msg->type = LOGIC_CALC_MSG;
@@ -204,6 +204,48 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             msg->data.value = s->outputs->array[i].value;
             tw_event_send(e);
             //printf("SEND\tgid: %d\tgtype: %d\tsend: %d\tto: %d\n", lp->gid, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
+        }
+    } else {
+        printf("ERROR: could not process message type %d on lp %d\n", in_msg->type, self);
+    }
+}
+
+void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
+    int i;
+    int self = lp->gid;
+    
+    s->received_events--;
+    
+    if (in_msg->type == SETUP_MSG) {
+        if (in_msg->data.gid == self) {
+            for (i = 0; i < s->inputs->size; i++) {
+                tw_rand_reverse_unif(lp->rng);
+            }
+        } else {
+            s->outputs->size--;
+            SWAP(s->outputs->array[s->outputs->size].gid, in_msg->data.gid);
+        }
+    } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
+        for (i = 0; i < s->outputs->size; i++) {
+            tw_rand_reverse_unif(lp->rng);
+        }
+    } else if (in_msg->type == LOGIC_CARY_MSG) {
+        for (i = 0; i < s->inputs->size; i++) {
+            if(s->inputs->array[i].gid == in_msg->data.gid){
+                SWAP(s->inputs->array[i].value, in_msg->data.value);
+                break;
+            }
+        }
+        
+        //If I took the calc=FALSE path, bf->c0 == 1
+        if (bf->c0) {
+            s->calc = FALSE;
+        }
+    } else if (in_msg->type == LOGIC_CALC_MSG) {
+        s->calc = TRUE;
+        
+        for(i = 0; i < s->outputs->size; i++){
+            tw_rand_reverse_unif(lp->rng);
         }
     } else {
         printf("ERROR: could not process message type %d on lp %d\n", in_msg->type, self);
@@ -288,7 +330,7 @@ tw_lp * gates_mapping_to_lp(tw_lpid lpid){
 tw_lptype gates_lps[] = {
     {   (init_f) gates_init,
         (event_f) gates_event,
-        (revent_f) NULL,
+        (revent_f) gates_event_rc,
         (final_f) gates_final,
         (map_f) gates_map,
         sizeof(gate_state)  },

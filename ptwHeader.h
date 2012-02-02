@@ -64,5 +64,6 @@ typedef int LOGIC;
 
 //function macros
 #define LOGIC_NOT(x) ((x) + 1) % 2
+#define SWAP(a, b)  a ^= b; b ^= a; a ^= b; 
 
 #endif
