@@ -248,7 +248,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_rand_reverse_unif(lp->rng);
         }
     } else {
-        printf("ERROR: could not process message type %d on lp %d\n", in_msg->type, self);
+        printf("ERROR: could not process reverse message type %d on lp %d\n", in_msg->type, self);
     }
 }
 
