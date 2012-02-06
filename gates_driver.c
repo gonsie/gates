@@ -228,6 +228,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
         for (i = 0; i < s->outputs->size; i++) {
             tw_rand_reverse_unif(lp->rng);
+            tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
