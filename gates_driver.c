@@ -367,6 +367,8 @@ int gates_main(int argc, char* argv[]){
         tw_lp_settype(i, &gates_lps[0]);
     }
     
+    
+    
     char filename[100] = "/ccx_mpi.bench";
     char *fullpath = dirname(argv[0]);
     strcat(fullpath, filename);
@@ -378,6 +380,14 @@ int gates_main(int argc, char* argv[]){
         }
         fclose(my_file);
     } else {
+        //Error checking
+        int np;
+        MPI_Comm_size(MPI_COMM_WORLD, &np);
+        if (np != NP_COUNT) {
+            printf("ERROR: expected %d processors but %d were defined\n", NP_COUNT, np);
+            return 1;
+        }
+        
         //IO
         //printf("%d is attempting to start io\n", g_tw_mynode);
         MPI_File fh;
