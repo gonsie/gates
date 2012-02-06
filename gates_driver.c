@@ -261,10 +261,6 @@ void gates_final(gate_state *s, tw_lp *lp){
         printf("%d processed %d events\n", self, s->received_events);
     }
     
-    
-    if (s->stat_output_change > g_tw_ts_end / source_interval) {
-        printf("%d changed %d times\n", self, s->stat_output_change);
-    }
     return;
 }
 
