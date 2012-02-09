@@ -146,7 +146,6 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
         //s->gate_function(s->inputs, s->outputs);
         printf("Source doing a wave of inputs\n");
-        int i;
         for (i = 0; i < s->outputs->size; i++) {
             double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
             tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
@@ -239,7 +238,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
         
         //If I took the calc=FALSE path, bf->c0 == 1
-        if (bf->c0) {
+        if (bf->c0 == 1) {
             s->calc = FALSE;
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
