@@ -31,7 +31,10 @@ unsigned int sink_interval = 5;
 
 int error_count = 0;
 
+//#define DEBUG_TRACE 1
+#if DEBUG_TRACE
 FILE * node_out_file;
+#endif
 
 void gates_init(gate_state *s, tw_lp *lp){
     int self = lp->gid;
@@ -128,18 +131,21 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     *(int *) bf = (int) 0;
     
     if (FALSE) {
-      printf("#%d ", self);
-      rng_write_state(lp->rng);
+        printf("#%d ", self);
+        rng_write_state(lp->rng);
     }
     
+#if DEBUG_TRACE
     fprintf(node_out_file, "FWDE: #%d %lu %lu %lu %lu %d %2.3f %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid);
+#endif
     
     //printf("Processing event type %d on lp %d\n", in_msg->type, self);
     /*
     if (tw_now(lp) >= 29.2) {
-      printf("#%d processing event type %d\n", self, in_msg->type);
-      }*/
-
+        printf("#%d processing event type %d\n", self, in_msg->type);
+    }
+    */
+    
     s->received_events++;
     
     if(lp->id == 0 && error_count != 0){
@@ -176,7 +182,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         tw_event *e = tw_event_new(SOURCE_ID, source_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
-	msg->data.gid = self;
+        msg->data.gid = self;
         tw_event_send(e);
     } else if (self == SINK_ID) {
         //s->gate_func(s->inputs, s->outputs);
@@ -206,7 +212,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event *e = tw_event_new(self, jitter_offset + 0.5, lp);
             message *msg =  tw_event_data(e);
             msg->type = LOGIC_CALC_MSG;
-	    msg->data.gid = self;
+            msg->data.gid = self;
             tw_event_send(e);
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
@@ -231,7 +237,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     int self = lp->gid;
-
+    
     s->received_events--;
     
     if (in_msg->type == SETUP_MSG) {
@@ -249,7 +255,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_rand_reverse_unif(lp->rng);
         }
     } else if (self == SINK_ID) {
-      //do nothing
+        //do nothing
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
@@ -272,10 +278,14 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         printf("ERROR: could not process reverse message type %d on lp %d\n", in_msg->type, self);
     }
     if (FALSE){
-      printf("Reverse: #%d ", self);
-      rng_write_state(lp->rng);
+        printf("Reverse: #%d ", self);
+        rng_write_state(lp->rng);
     }
+    
+#if DEBUG_TRACE
     fprintf(node_out_file, "REVE: #%d %lu %lu %lu %lu %d %2.3f %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid);
+#endif
+    
 }
 
 void gates_final(gate_state *s, tw_lp *lp){
@@ -287,8 +297,8 @@ void gates_final(gate_state *s, tw_lp *lp){
     }
     
     if(FALSE) {
-      printf("#%d e%d\n", self, s->received_events);
-      fflush(stdout);
+        printf("#%d e%d\n", self, s->received_events);
+        fflush(stdout);
     }
     return;
 }
@@ -313,7 +323,7 @@ void gates_custom_mapping(void){
     if(!nlp_per_kp) tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
     
     g_tw_lp_offset = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT);
-
+    
 #if VERIFY_MAPPING
     printf("Node %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
 #endif
@@ -440,22 +450,24 @@ int gates_main(int argc, char* argv[]){
             printf("ERROR: %d wants to read extra lines\n", g_tw_mynode);
             line_end = TOTAL_GATE_COUNT;
         }
-//        printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
+        //printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
         for (i = line_start; i < line_end; i++, current_id++) {
             MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
         }
         MPI_File_close(&fh);
     }
     
+#if DEBUG_TRACE
     if (g_tw_mynode == 0) {
-      node_out_file = fopen("node_0_output_file.txt","w");
+        node_out_file = fopen("node_0_output_file.txt","w");
     } else if (g_tw_mynode == 1) {
-      node_out_file = fopen("node_1_output_file.txt", "w");
+        node_out_file = fopen("node_1_output_file.txt", "w");
     } else if (g_tw_mynode == 2) {
-      node_out_file = fopen("node_2_output_file.txt", "w");
+        node_out_file = fopen("node_2_output_file.txt", "w");
     } else if (g_tw_mynode == 3) {
-      node_out_file = fopen("node_3_output_file.txt", "w");
+        node_out_file = fopen("node_3_output_file.txt", "w");
     }
+#endif
     
     tw_run();
     
