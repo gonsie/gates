@@ -31,6 +31,8 @@ unsigned int sink_interval = 5;
 
 int error_count = 0;
 
+FILE * node_out_file;
+
 void gates_init(gate_state *s, tw_lp *lp){
     int self = lp->gid;
     s->received_events = 0;
@@ -122,7 +124,22 @@ tw_stime clock_round(tw_stime now){
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     int self = lp->gid;
+    
+    *(int *) bf = (int) 0;
+    
+    if (FALSE) {
+      printf("#%d ", self);
+      rng_write_state(lp->rng);
+    }
+    
+    fprintf(node_out_file, "FWDE: #%d %lu %lu %lu %lu %d %2.3f %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid);
+    
     //printf("Processing event type %d on lp %d\n", in_msg->type, self);
+    /*
+    if (tw_now(lp) >= 29.2) {
+      printf("#%d processing event type %d\n", self, in_msg->type);
+      }*/
+
     s->received_events++;
     
     if(lp->id == 0 && error_count != 0){
@@ -143,7 +160,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             SWAP(s->outputs->array[s->outputs->size].gid, in_msg->data.gid);
             s->outputs->size++;
         }
-    } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
+    } else if (in_msg->type == SOURCE_MSG && self == SOURCE_ID) {
         //s->gate_function(s->inputs, s->outputs);
         printf("Source doing a wave of inputs\n");
         int i;
@@ -152,7 +169,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
-            msg->data.gid = lp->gid;
+            msg->data.gid = self;
             msg->data.value = (tw_rand_unif(lp->rng) < 0.5) ? 0 : 1;
             tw_event_send(e);
         }
@@ -160,8 +177,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         tw_event *e = tw_event_new(SOURCE_ID, source_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
+	msg->data.gid = self;
         tw_event_send(e);
-    } else if (lp->gid == SINK_ID) {
+    } else if (self == SINK_ID) {
         //s->gate_func(s->inputs, s->outputs);
         //printf("SUNK\tgid: %d\tval: %d\n", (int) in_msg->data.gid, (int) in_msg->data.value);
         if (in_msg->type == SINK_MSG) {
@@ -186,9 +204,10 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             s->calc = TRUE;
             double jitter_offset = clock_round(tw_now(lp));
             if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %d is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
-            tw_event *e = tw_event_new(self, jitter_offset + MESSAGE_PAD, lp);
+            tw_event *e = tw_event_new(self, jitter_offset + 0.5, lp);
             message *msg =  tw_event_data(e);
             msg->type = LOGIC_CALC_MSG;
+	    msg->data.gid = self;
             tw_event_send(e);
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
@@ -200,10 +219,10 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
-            msg->data.gid = lp->gid;
+            msg->data.gid = self;
             msg->data.value = s->outputs->array[i].value;
             tw_event_send(e);
-            //printf("SEND\tgid: %d\tgtype: %d\tsend: %d\tto: %d\n", lp->gid, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
+            //printf("SEND\tgid: %d\tgtype: %d\tsend: %d\tto: %d\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
         }
     } else {
         printf("ERROR: could not process message type %d on lp %d\n", in_msg->type, self);
@@ -213,7 +232,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     int self = lp->gid;
-    
+
     s->received_events--;
     
     if (in_msg->type == SETUP_MSG) {
@@ -225,11 +244,13 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             s->outputs->size--;
             SWAP(s->outputs->array[s->outputs->size].gid, in_msg->data.gid);
         }
-    } else if (in_msg->type == SOURCE_MSG && lp->gid == SOURCE_ID) {
+    } else if (in_msg->type == SOURCE_MSG && self == SOURCE_ID) {
         for (i = 0; i < s->outputs->size; i++) {
             tw_rand_reverse_unif(lp->rng);
             tw_rand_reverse_unif(lp->rng);
         }
+    } else if (self == SINK_ID) {
+      //do nothing
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
@@ -239,7 +260,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
         
         //If I took the calc=FALSE path, bf->c0 == 1
-        if (bf->c0) {
+        if (bf->c0 == 1) {
             s->calc = FALSE;
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
@@ -251,16 +272,25 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else {
         printf("ERROR: could not process reverse message type %d on lp %d\n", in_msg->type, self);
     }
+    if (FALSE){
+      printf("Reverse: #%d ", self);
+      rng_write_state(lp->rng);
+    }
+    fprintf(node_out_file, "REVE: #%d %lu %lu %lu %lu %d %2.3f %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid);
 }
 
 void gates_final(gate_state *s, tw_lp *lp){
     int self = lp->gid;
     
     //wrap up
-    if (lp->gid == SOURCE_ID || lp->gid == SINK_ID) {
+    if (self == SOURCE_ID || self == SINK_ID) {
         printf("%d processed %d events\n", self, s->received_events);
     }
     
+    if(FALSE) {
+      printf("#%d e%d\n", self, s->received_events);
+      fflush(stdout);
+    }
     return;
 }
 
@@ -416,6 +446,16 @@ int gates_main(int argc, char* argv[]){
             MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
         }
         MPI_File_close(&fh);
+    }
+    
+    if (g_tw_mynode == 0) {
+      node_out_file = fopen("node_0_output_file.txt","w");
+    } else if (g_tw_mynode == 1) {
+      node_out_file = fopen("node_1_output_file.txt", "w");
+    } else if (g_tw_mynode == 2) {
+      node_out_file = fopen("node_2_output_file.txt", "w");
+    } else if (g_tw_mynode == 3) {
+      node_out_file = fopen("node_3_output_file.txt", "w");
     }
     
     tw_run();
