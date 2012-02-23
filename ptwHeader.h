@@ -64,6 +64,12 @@ typedef int LOGIC;
 
 //function macros
 #define LOGIC_NOT(x) ((x) + 1) % 2
-#define SWAP(a, b)  a ^= b; b ^= a; a ^= b; 
-
+extern int global_swap_count;
+inline void SWAP(int *a, int *b) // a ^= b; b ^= a; a ^= b; 
+{
+  int temp = *a;
+  *a = *b;
+  *b = temp;
+  global_swap_count++;
+}
 #endif
