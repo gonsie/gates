@@ -33,7 +33,7 @@ unsigned int sink_interval = 5;
 
 int error_count = 0;
 
-#define DEBUG_TRACE 1
+//#define DEBUG_TRACE 1
 #if DEBUG_TRACE
 FILE * node_out_file;
 #endif
