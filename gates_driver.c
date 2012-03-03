@@ -56,8 +56,8 @@ void gates_init(gate_state *s, tw_lp *lp){
         }
         s->gate_type = type;
         if (s->gate_type == INPUT_GATE) {
-            inputs[0] = SOURCE_ID;
-            count++;
+	  //inputs[0] = SOURCE_ID;
+	  //count++;
         }
         
         s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
@@ -80,8 +80,8 @@ void gates_init(gate_state *s, tw_lp *lp){
         s->outputs->size = 0;
         
         if (s->gate_type == OUTPUT_GATE) {
-            s->outputs->array[0].gid = SINK_ID;
-            s->outputs->size++;
+	  //s->outputs->array[0].gid = SINK_ID;
+	  //s->outputs->size++;
         }
         
         tw_event *e = tw_event_new(self, 1, lp);
@@ -96,12 +96,13 @@ void gates_init(gate_state *s, tw_lp *lp){
             message *msg2 = tw_event_data(e2);
             msg2->type = SOURCE_MSG;
             msg2->data.gid = self;
+	    msg2->data.value = -1;
             tw_event_send(e2);
         }
         
         //printf("%d is all done! my type is %d\n", self, s->gate_type);
     } else {
-        //printf("%d is an unused lp\n", self);
+        //printf("ERROR: lp with gid %d (>= %d) was inited \n", self, TOTAL_GATE_COUNT);
     }
     
 }
