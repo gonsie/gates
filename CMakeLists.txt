@@ -18,7 +18,7 @@ EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_SOURCE_DIR}/ccx_mpi.bench
 STRING(REPLACE " " ";" _outlist ${_output})
 LIST(GET _outlist 0 _ngates)
 
-MATH(EXPR _ng "${_ngates} + 2")
+MATH(EXPR _ng "${_ngates}")
 MATH(EXPR _nlp "${_ng}/${_np}")
 MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_np})")
 
@@ -36,6 +36,9 @@ SET(gates_srcs
 	gate.h
 	ptwHeader.h
 )
+
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
+	PROPERTIES GENERATED false)
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h 
 	PROPERTIES GENERATED true)

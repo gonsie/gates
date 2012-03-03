@@ -40,8 +40,8 @@
 #define XOR_GATE (10)
 #define XNOR_GATE (11)
 
-#define SOURCE_ID (0)
-#define SINK_ID (1)
+#define SOURCE_ID (-1)
+#define SINK_ID (-2)
 
 //message types
 #define SOURCE_MSG (0)

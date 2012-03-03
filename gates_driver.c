@@ -43,36 +43,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->received_events = 0;
     s->calc = FALSE;
     
-    if (self == SOURCE_ID) {
-        s->gate_type = SOURCE_GATE;
-        s->inputs = tw_calloc(TW_LOC, "gates_init_source_lp", sizeof(vector) + 0 * sizeof(pair), 1);
-        s->inputs->size = 0;
-        s->outputs = tw_calloc(TW_LOC, "gates_init_source_lp", sizeof(vector) + SOURCE_OUTPUTS * sizeof(pair), 1);
-        s->outputs->size = 0;
-        
-        //event to start simulation
-        tw_event *e = tw_event_new(self, 10.5, lp);
-        message *msg = tw_event_data(e);
-        msg->type = SOURCE_MSG;
-        msg->data.gid = self;
-        msg->data.value = -1;
-        tw_event_send(e);
-        
-        printf("Source has completed init.\n");
-    } else if (self == SINK_ID) {
-        s->gate_type = SINK_GATE;
-        s->inputs = tw_calloc(TW_LOC, "gates_init_sink_lp", sizeof(vector) + 0 * sizeof(pair), 1);
-        s->inputs->size = 0;
-        s->outputs = tw_calloc(TW_LOC, "gates_init_sink_lp", sizeof(vector) + 0 * sizeof(pair), 1);
-        s->outputs->size = 0;
-        
-        tw_event *e = tw_event_new(self, 10 + sink_interval, lp);
-        message *msg = tw_event_data(e);
-        msg->type = SINK_MSG;
-        msg->data.gid = self;
-        msg->data.value = -1;
-        tw_event_send(e);
-    } else if(self < TOTAL_GATE_COUNT + 2){
+    if (self < TOTAL_GATE_COUNT) {
         int type = -1;
         int output_count = 0;
         int inputs[MAX_GATE_INPUTS];
@@ -119,6 +90,14 @@ void gates_init(gate_state *s, tw_lp *lp){
         msg->data.gid = self;
         msg->data.value = self;
         tw_event_send(e);
+        
+        if (s->gate_type == INPUT_GATE) {
+            tw_event *e2 = tw_event_new(self, 10.5, lp);
+            message *msg2 = tw_event_data(e2);
+            msg2->type = SOURCE_MSG;
+            msg2->data.gid = self;
+            tw_event_send(e2);
+        }
         
         //printf("%d is all done! my type is %d\n", self, s->gate_type);
     } else {
@@ -177,9 +156,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));
             s->outputs->size++;
         }
-    } else if (in_msg->type == SOURCE_MSG && self == SOURCE_ID) {
+    } else if (in_msg->type == SOURCE_MSG) {
         //s->gate_function(s->inputs, s->outputs);
-        printf("Source doing a wave of inputs\n");
+        //printf("Source doing a wave of inputs\n");
         for (i = 0; i < s->outputs->size; i++) {
             double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
             tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
@@ -190,7 +169,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
         
-        tw_event *e = tw_event_new(SOURCE_ID, source_interval, lp);
+        tw_event *e = tw_event_new(self, source_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         msg->data.gid = self;
@@ -268,7 +247,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             s->outputs->size--;
             SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));
         }
-    } else if (in_msg->type == SOURCE_MSG && self == SOURCE_ID) {
+    } else if (in_msg->type == SOURCE_MSG) {
         assert(s->outputs->size >= 0);
         for (i = 0; i < s->outputs->size; i++) {
             tw_rand_reverse_unif(lp->rng);
@@ -437,7 +416,7 @@ int gates_main(int argc, char* argv[]){
     if (g_tw_synchronization_protocol == 1) {
         //sequential
         FILE *my_file = fopen(fullpath, "r");
-        for (i = 2; i < LP_COUNT; i++) {
+        for (i = 0; i < LP_COUNT; i++) {
             fgets(global_input[i], LINE_LENGTH, my_file);
         }
         fclose(my_file);
@@ -463,13 +442,12 @@ int gates_main(int argc, char* argv[]){
         int current_id;
         if (g_tw_mynode == 0) {
             line_start = 0;
-            line_end = g_tw_nlp - 2;
-            current_id = 2;
         } else {
-            line_start = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT) - 2;
-            line_end = line_start + g_tw_nlp;
-            current_id = 0;
+            line_start = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT);
         }
+        line_end = line_start + g_tw_nlp;
+        current_id = 0;
+        
         if (line_end > TOTAL_GATE_COUNT) {
             printf("ERROR: %d wants to read extra lines\n", g_tw_mynode);
             line_end = TOTAL_GATE_COUNT;
