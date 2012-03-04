@@ -32,6 +32,7 @@ MATH(EXPR _ll  "${_linelen} + 1")
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 SET(gates_srcs
+    gates_main.c
 	gates_driver.c 
 	gate.h
 	ptwHeader.h

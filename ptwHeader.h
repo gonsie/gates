@@ -6,6 +6,7 @@
 #define _ptwHeader_h
 
 #include "ross.h"
+#include "run_config.h"
 
 //ASSUPMTIONS
 //- No gate uses its output as an input (doesn't send an event to itself)
@@ -65,11 +66,20 @@ typedef int LOGIC;
 //function macros
 #define LOGIC_NOT(x) ((x) + 1) % 2
 extern int global_swap_count;
-inline void SWAP(int *a, int *b) // a ^= b; b ^= a; a ^= b; 
-{
-  int temp = *a;
-  *a = *b;
-  *b = temp;
-  global_swap_count++;
-}
+
+
+extern char global_input[][LINE_LENGTH+1];
+extern unsigned int source_interval;
+extern unsigned int sink_interval;
+extern int error_count;
+
+void gates_custom_mapping(void);
+tw_lp * gates_mapping_to_lp(tw_lpid lpid);
+tw_peid gates_map(tw_lpid gid);
+
+extern tw_lptype gates_lps[];
+
+
 #endif
+
+

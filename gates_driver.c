@@ -3,7 +3,7 @@
 //Rensselaer Polytechnic Institute
 
 #include <stdio.h>
-#include <libgen.h>
+
 #include <assert.h>
 
 #include "ross.h"
@@ -11,6 +11,173 @@
 #include "run_config.h"
 
 int global_swap_count = 0;
+
+
+char global_input[LP_COUNT+1][LINE_LENGTH + 1];
+unsigned int source_interval = 1;
+unsigned int sink_interval = 5;
+
+int error_count = 0;
+
+//#define DEBUG_TRACE 1
+#if DEBUG_TRACE
+FILE * node_out_file;
+#endif
+
+
+inline void SWAP(int *a, int *b) // a ^= b; b ^= a; a ^= b; 
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+    global_swap_count++;
+}
+
+
+int SOURCE_func(vector input, vector output){
+    return 0;
+}
+
+int SINK_func(vector input, vector output){
+    int i;
+    for(i = 0; i < input->size; i++){
+        //printf("Received a %d, supposedly from gate with id %d.\n", input->array[i].value, input->array[i].gid);
+    }
+    return 0;
+}
+
+int INPUT_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value != input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
+    int i;
+    for (i = 0; i < input->size; i++) {
+        output->array[i].value = input->array[i].value;
+    }
+    
+    return change_flag;
+}
+
+int OUTPUT_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value != input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
+    int i;
+    for (i = 0; i < input->size; i++) {
+        //output->array[i].value = input->array[i].value;
+    }
+    
+    return change_flag;
+}
+
+int NOT_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value == input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
+    int i;
+    for(i = 0; i < input->size; i++){
+        output->array[i].value = LOGIC_NOT(input->array[i].value);
+    }
+    
+    return change_flag;
+}
+
+int DFF_func(vector input, vector output){
+    int change_flag = FALSE;
+    if (output->array[0].value != input->array[0].value) {
+        change_flag = TRUE;
+    }
+    
+    //size is expected to be 1
+    int i;
+    for (i = 0; i < input->size; i++) {
+        output->array[i].value = input->array[i].value;
+    }
+    
+    return change_flag;
+}
+
+int AND_func(vector input, vector output){
+    int i;
+    for(i = 0; i < input->size; i++){
+        if (!input->array[i].value) {
+            if (output->array[0].value == FALSE) {
+                return FALSE;
+            } else {
+                output->array[0].value = FALSE;
+                return TRUE;
+            }
+        }
+    }
+    if (output->array[0].value == TRUE) {
+        return FALSE;
+    } else {
+        output->array[0].value = TRUE;
+        return TRUE;
+    }
+}
+
+int NAND_func(vector input, vector output){
+    int and_change = AND_func(input, output);
+    NOT_func(output, output);
+    return LOGIC_NOT(and_change);
+}
+
+int OR_func(vector input, vector output){
+    int i;
+    for (i = 0; i < input->size; i++) {
+        if (input->array[i].value) {
+            if (output->array[0].value == TRUE) {
+                return FALSE;
+            } else {
+                output->array[0].value = TRUE;
+                return TRUE;
+            }
+        }
+    }
+    if (output->array[0].value == FALSE) {
+        return FALSE;
+    } else {
+        output->array[0].value = FALSE;
+        return TRUE;
+    }
+}
+
+int NOR_func(vector input, vector output){
+    int or_change = OR_func(input, output);
+    NOT_func(output, output);
+    return LOGIC_NOT(or_change);
+}
+
+int XOR_func(vector input, vector output){
+    int i, count;
+    for (i = 0, count = 0; i < input->size; i++) {
+        if (input->array[i].value) {
+            count++;
+        }
+    }
+    
+    if (output->array[0].value != count % 2) {
+        output->array[0].value = count % 2;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+int XNOR_func(vector input, vector output){
+    int xor_change = XOR_func(input, output);
+    NOT_func(output, output);
+    return LOGIC_NOT(xor_change);
+}
 
 gate_func function_array[GATE_TYPE_COUNT] = {
     &SOURCE_func,
@@ -27,16 +194,6 @@ gate_func function_array[GATE_TYPE_COUNT] = {
     &XNOR_func,
 };
 
-char global_input[LP_COUNT+1][LINE_LENGTH + 1];
-unsigned int source_interval = 1;
-unsigned int sink_interval = 5;
-
-int error_count = 0;
-
-//#define DEBUG_TRACE 1
-#if DEBUG_TRACE
-FILE * node_out_file;
-#endif
 
 void gates_init(gate_state *s, tw_lp *lp){
     int self = lp->gid;
@@ -371,110 +528,3 @@ tw_lptype gates_lps[] = {
     { 0 },
 };
 
-const tw_optdef gates_opts[] = {
-    TWOPT_GROUP("Gates Model"),
-    TWOPT_UINT("source_interval", source_interval,"time between source sending waves of input"),
-    TWOPT_UINT("sink_interval", sink_interval, "time between reporting of sink statistics"),
-    TWOPT_END(),
-};
-
-#define gates_main main
-
-int gates_main(int argc, char* argv[]){
-    
-    int i;
-    
-    //g_tw_nkp = 1;
-    
-    tw_opt_add(gates_opts);
-    
-    tw_init(&argc, &argv);
-    
-    
-    
-    g_tw_mapping = CUSTOM;
-    g_tw_custom_initial_mapping = &gates_custom_mapping;
-    g_tw_custom_lp_global_to_local_map = &gates_mapping_to_lp;
-    
-    g_tw_events_per_pe = LP_COUNT * MAX_GATE_INPUTS + SOURCE_OUTPUTS * 2 + 32000;
-    g_tw_lookahead = 0.09;
-    
-    g_tw_nlp = LP_COUNT;
-    if (g_tw_mynode < EXTRA_LP_COUNT) {
-        g_tw_nlp++;
-    }
-    
-    tw_define_lps(g_tw_nlp, sizeof(message), 0);
-    for (i = 0; i < g_tw_nlp; i++) {
-        tw_lp_settype(i, &gates_lps[0]);
-    }
-    
-    
-    
-    char filename[100] = "/ccx_mpi.bench";
-    char *fullpath = dirname(argv[0]);
-    strcat(fullpath, filename);
-    if (g_tw_synchronization_protocol == 1) {
-        //sequential
-        FILE *my_file = fopen(fullpath, "r");
-        for (i = 0; i < LP_COUNT; i++) {
-            fgets(global_input[i], LINE_LENGTH, my_file);
-        }
-        fclose(my_file);
-    } else {
-        //Error checking
-        int np;
-        int rc = MPI_Comm_size(MPI_COMM_WORLD, &np);
-        printf("(%d)", rc);
-        if (np != NP_COUNT) {
-            printf("ERROR: expected %d processors but %d were defined\n", NP_COUNT, np);
-            return 1;
-        }
-        
-        //IO
-        //printf("%d is attempting to start io\n", g_tw_mynode);
-        MPI_File fh;
-        MPI_Status req;
-        
-        MPI_File_open(MPI_COMM_WORLD, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-        
-        //NOTE: for some reason count is off
-        int line_start, line_end;
-        int current_id;
-        if (g_tw_mynode == 0) {
-            line_start = 0;
-        } else {
-            line_start = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT);
-        }
-        line_end = line_start + g_tw_nlp;
-        current_id = 0;
-        
-        if (line_end > TOTAL_GATE_COUNT) {
-            printf("ERROR: %d wants to read extra lines\n", g_tw_mynode);
-            line_end = TOTAL_GATE_COUNT;
-        }
-        //printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
-        for (i = line_start; i < line_end; i++, current_id++) {
-            MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
-        }
-        MPI_File_close(&fh);
-    }
-    
-#if DEBUG_TRACE
-    if (g_tw_mynode == 0) {
-        node_out_file = fopen("node_0_output_file.txt","w");
-    } else if (g_tw_mynode == 1) {
-        node_out_file = fopen("node_1_output_file.txt", "w");
-    } else if (g_tw_mynode == 2) {
-        node_out_file = fopen("node_2_output_file.txt", "w");
-    } else if (g_tw_mynode == 4) {
-        node_out_file = fopen("node_4_output_file.txt", "w");
-    }
-#endif
-    
-    tw_run();
-    
-    tw_end();
-    
-    return 0;
-}
