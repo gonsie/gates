@@ -52,7 +52,7 @@ int gates_main(int argc, char* argv[]){
     
     
     
-    char filename[100] = "/ccx_mpi.bench";
+    char filename[100] = "/data.vbench";
     char *fullpath = dirname(argv[0]);
     strcat(fullpath, filename);
     if (g_tw_synchronization_protocol == 1) {
