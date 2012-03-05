@@ -7,9 +7,11 @@
 
 #include "ross.h"
 #include "run_config.h"
-#include "ptwHeader.h"
+#include "gates_model.h"
 #include "gate.h"
 
+unsigned int source_interval = 1;
+unsigned int sink_interval = 5;
 
 const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),

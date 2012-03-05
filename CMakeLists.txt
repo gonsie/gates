@@ -35,7 +35,8 @@ SET(gates_srcs
     gates_main.c
 	gates_driver.c 
 	gate.h
-	ptwHeader.h
+    gate.c
+	gates_model.h
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
