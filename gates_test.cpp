@@ -17,6 +17,6 @@ extern "C" {
     
 }
 
-TEST_CASE("test1", "a simple test case") {
+TEST_CASE("reality check", "the simplest test case") {
     REQUIRE( 0 == 0 );
 }
