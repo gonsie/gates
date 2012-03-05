@@ -9,7 +9,7 @@ ENDIF(NOT np)
 UNSET(np CACHE)
 
 # copy the data file to the build directory
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/ccx_mpi.bench ${CMAKE_CURRENT_BINARY_DIR}/ccx_mpi.bench COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/ccx_data_np${_np}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 
 # calculate variables for run_config.h
 CMAKE_POLICY(SET CMP0007 OLD)
@@ -33,9 +33,9 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURC
 
 SET(gates_srcs
     gates_main.c
-	gates_driver.c 
+    gates_driver.c 
     gates_model.h
-	gate.c
+    gate.c
     gate.h
 )
 
