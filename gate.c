@@ -154,7 +154,6 @@ int XNOR_func(vector input, vector output){
     return LOGIC_NOT(xor_change);
 }
 
-
 gate_func function_array[GATE_TYPE_COUNT] = {
     &SOURCE_func,
     &SINK_func,
@@ -169,6 +168,3 @@ gate_func function_array[GATE_TYPE_COUNT] = {
     &XOR_func,
     &XNOR_func,
 };
-
-
-

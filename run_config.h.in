@@ -1,5 +1,16 @@
+//Elsa Gonsiorowski
+//October 7, 2011
+//Rensselaer Polytechnic Institute
+
+//Configured settings determined at compile time by cmake
+
+#ifndef _run_config_h
+#define _run_config_h
+
 #define TOTAL_GATE_COUNT @_ngates@
 #define NP_COUNT @_np@
 #define LP_COUNT @_nlp@
 #define EXTRA_LP_COUNT @_xlp@
 #define LINE_LENGTH @_ll@
+
+#endif

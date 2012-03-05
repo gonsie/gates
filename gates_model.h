@@ -2,9 +2,7 @@
 //October 7, 2011
 //Rensselaer Polytechnic Institute
 
-
-//Settings for individual gates
-
+//General structs, defs, and vars for the model
 
 #ifndef _gates_model_h
 #define _gates_model_h
@@ -79,6 +77,5 @@ extern char global_input[][LINE_LENGTH+1];
 void gates_custom_mapping(void);
 tw_lp * gates_mapping_to_lp(tw_lpid lpid);
 tw_peid gates_map(tw_lpid gid);
-
 
 #endif

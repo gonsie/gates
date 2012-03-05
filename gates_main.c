@@ -2,6 +2,8 @@
 //October 7, 2011
 //Rensselaer Polytechnic Institute
 
+//The main function and command line arguments
+
 #include <stdio.h>
 #include <libgen.h>
 

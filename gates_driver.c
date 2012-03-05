@@ -2,6 +2,8 @@
 //October 7, 2011
 //Rensselaer Polytechnic Institute
 
+//This file contains the ross functions for the model: init/final, foward/reverse event, mapping, and support
+
 #include <stdio.h>
 #include <assert.h>
 
