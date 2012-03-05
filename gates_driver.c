@@ -12,6 +12,9 @@
 #include "gates_model.h"
 #include "gate.h"
 
+unsigned int source_interval = 1;
+unsigned int sink_interval = 5;
+
 char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 
 //#define DEBUG_TRACE 1

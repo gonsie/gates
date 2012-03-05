@@ -34,9 +34,9 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURC
 SET(gates_srcs
     gates_main.c
 	gates_driver.c 
-	gate.h
-    gate.c
-	gates_model.h
+    gates_model.h
+	gate.c
+    gate.h
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
@@ -48,3 +48,15 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h
 ADD_EXECUTABLE(gates ${gates_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 TARGET_LINK_LIBRARIES(gates ROSS m)
+
+SET(test_srcs
+    gates_driver.c
+    gates_test.cpp
+    gates_model.h
+    gate.c
+    gate.h
+)
+
+ADD_EXECUTABLE(test_gates ${test_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
+
+TARGET_LINK_LIBRARIES(test_gates ROSS m)    

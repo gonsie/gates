@@ -12,9 +12,6 @@
 #include "gates_model.h"
 #include "gate.h"
 
-unsigned int source_interval = 1;
-unsigned int sink_interval = 5;
-
 const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),
     TWOPT_UINT("source_interval", source_interval,"time between source sending waves of input"),
