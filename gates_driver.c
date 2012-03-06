@@ -51,8 +51,8 @@ void gates_init(gate_state *s, tw_lp *lp){
         }
         s->gate_type = type;
         if (s->gate_type == INPUT_GATE) {
-	  //inputs[0] = SOURCE_ID;
-	  //count++;
+            //inputs[0] = SOURCE_ID;
+            //count++;
         }
         
         s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
@@ -75,8 +75,8 @@ void gates_init(gate_state *s, tw_lp *lp){
         s->outputs->size = 0;
         
         if (s->gate_type == OUTPUT_GATE) {
-	  //s->outputs->array[0].gid = SINK_ID;
-	  //s->outputs->size++;
+            //s->outputs->array[0].gid = SINK_ID;
+            //s->outputs->size++;
         }
         
         tw_event *e = tw_event_new(self, 1, lp);
@@ -91,7 +91,7 @@ void gates_init(gate_state *s, tw_lp *lp){
             message *msg2 = tw_event_data(e2);
             msg2->type = SOURCE_MSG;
             msg2->data.gid = self;
-	    msg2->data.value = -1;
+            msg2->data.value = -1;
             tw_event_send(e2);
         }
         
@@ -324,21 +324,21 @@ void gates_custom_round_robin_mapping_setup(void){
     //set starting local and global ids for the LPs on this node
     for (lplid = 0, lpgid = g_tw_lp_offset, pe = NULL; (pe = tw_pe_next(pe)); ) {
         
-	//For each kp
+        //For each kp
         for (kpid = 0; kpid < g_tw_nkp; kpid++) {
             
             tw_kp_onpe(kpid, pe);
             
-	    //lps on this particular kp
-	    int nlps = lps_per_kp;
-	    if (kpid < extra_kps) {
-		nlps++;
-	    }
-	    
+            //lps on this particular kp
+            int nlps = lps_per_kp;
+            if (kpid < extra_kps) {
+                nlps++;
+            }
+            
             for (j = 0; j < nlps; j++, lpgid += NP_COUNT, lplid++) {
                 assert(lpgid < TOTAL_GATE_COUNT);
                 
-		tw_lp_onpe(lplid, pe, lpgid);
+                tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
                 
 #if VERIFY_MAPPING
