@@ -296,8 +296,7 @@ void gates_final(gate_state *s, tw_lp *lp){
     return;
 }
 
-extern unsigned int nkp_per_pe;
-#define VERIFY_MAPPING 1
+//#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
     return (tw_peid) gid % NP_COUNT;
@@ -310,26 +309,36 @@ void gates_custom_round_robin_mapping_setup(void){
     int lpgid, lplid;
     int i, j;
     
-    nlp_per_kp = ceil((double) g_tw_nlp / (double) (g_tw_nkp * tw_nnodes()) );
-    if(!nlp_per_kp) tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
+    //Minimum lps per kp, and how many kps have 1 extra lp
+    int lps_per_kp = g_tw_nlp / g_tw_nkp;
+    int extra_kps = g_tw_nlp - (lps_per_kp * g_tw_nkp);
     
+    //The gid of my g_tw_lp[0]
     g_tw_lp_offset = g_tw_mynode;
     
 #if VERIFY_MAPPING
-    printf("Node %d: nlp %d, offset %d\n", (int) g_tw_mynode, (int) g_tw_nlp, (int) g_tw_lp_offset);
+    printf("Node %d: nlp %d, offset %d, lps_per_kp %d, extra_kps %d\n", (int) g_tw_mynode, (int) g_tw_nlp, (int) g_tw_lp_offset, lps_per_kp, extra_kps);
 #endif
     
-    for (kpid = 0, lplid = 0, pe = NULL; (pe = tw_pe_next(pe)); ) {
+    //This loop happens once on each pe
+    //set starting local and global ids for the LPs on this node
+    for (lplid = 0, lpgid = g_tw_lp_offset, pe = NULL; (pe = tw_pe_next(pe)); ) {
         
-        lpgid = g_tw_lp_offset;
-        
-        for (i = 0; i < nkp_per_pe; i++, kpid++) {
+	//For each kp
+        for (kpid = 0; kpid < g_tw_nkp; kpid++) {
             
             tw_kp_onpe(kpid, pe);
             
-            for (j = 0; j < nlp_per_kp && lpgid < g_tw_nlp; j++, lpgid += NP_COUNT, lplid++) {
+	    //lps on this particular kp
+	    int nlps = lps_per_kp;
+	    if (kpid < extra_kps) {
+		nlps++;
+	    }
+	    
+            for (j = 0; j < nlps; j++, lpgid += NP_COUNT, lplid++) {
+                assert(lpgid < TOTAL_GATE_COUNT);
                 
-                tw_lp_onpe(lplid, pe, lpgid);
+		tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
                 
 #if VERIFY_MAPPING

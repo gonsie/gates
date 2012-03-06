@@ -43,21 +43,25 @@ int gates_main(int argc, char* argv[]){
     g_tw_events_per_pe = LP_COUNT * MAX_GATE_INPUTS + SOURCE_OUTPUTS * 2 + 32000;
     g_tw_lookahead = 0.09;
     
-    int pe_nlp = LP_COUNT;
-    if (g_tw_mynode < EXTRA_LP_COUNT) {
-        pe_nlp++;
-    }
-    
+    //Total number of processors
     g_tw_npe = NP_COUNT;
     
-    nkp_per_pe = 8; //over writes command line setting
-    g_tw_nkp = nkp_per_pe * NP_COUNT;
+    //My processor number
+    g_tw_mynode;
     
-    printf("is this really fucking happening: int pe_nlp = %d, (tw_lpid) cast = %lu\n", pe_nlp, (tw_lpid) pe_nlp);
+    //My kp count
+    g_tw_nkp = 64;
     
-    tw_define_lps(pe_nlp, sizeof(message), 0);
-    printf("Node %d: g_tw_nlp = %d, pe_nlp = %d\n", g_tw_mynode, g_tw_nlp, pe_nlp);
-    for (i = 0; i < pe_nlp; i++) {
+    //My lp count
+    g_tw_nlp = LP_COUNT;
+    if (g_tw_mynode < EXTRA_LP_COUNT) {
+        g_tw_nlp++;
+    }
+    
+    
+    
+    tw_define_lps(g_tw_nlp, sizeof(message), 0);
+    for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
     }
     
