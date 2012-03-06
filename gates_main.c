@@ -43,12 +43,6 @@ int gates_main(int argc, char* argv[]){
     g_tw_events_per_pe = LP_COUNT * MAX_GATE_INPUTS + SOURCE_OUTPUTS * 2 + 32000;
     g_tw_lookahead = 0.09;
     
-    //Total number of processors
-    g_tw_npe = NP_COUNT;
-    
-    //My processor number
-    g_tw_mynode;
-    
     //My kp count
     g_tw_nkp = 64;
     
@@ -57,8 +51,6 @@ int gates_main(int argc, char* argv[]){
     if (g_tw_mynode < EXTRA_LP_COUNT) {
         g_tw_nlp++;
     }
-    
-    
     
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {

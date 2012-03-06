@@ -305,9 +305,8 @@ tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
 void gates_custom_round_robin_mapping_setup(void){
     tw_pe *pe;
     int kpid;
-    int nlp_per_kp;
     int lpgid, lplid;
-    int i, j;
+    int j;
     
     //Minimum lps per kp, and how many kps have 1 extra lp
     int lps_per_kp = g_tw_nlp / g_tw_nkp;
@@ -338,7 +337,7 @@ void gates_custom_round_robin_mapping_setup(void){
             for (j = 0; j < nlps; j++, lpgid += NP_COUNT, lplid++) {
                 assert(lpgid < TOTAL_GATE_COUNT);
                 
-                tw_lp_onpe(lplid, pe, lpgid);
+                tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
                 
 #if VERIFY_MAPPING
@@ -359,7 +358,7 @@ tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
     return g_tw_lp[id];
 }
 
-
+/*
 tw_peid gates_custom_linear_mapping_to_pe(tw_lpid gid){
     if (gid >= EXTRA_LP_COUNT * (LP_COUNT + 1)) {
         return (tw_peid) ((gid - EXTRA_LP_COUNT) / LP_COUNT);
@@ -417,6 +416,7 @@ tw_lp * gates_custom_linear_mapping_to_local(tw_lpid lpid){
     
     return g_tw_lp[id];
 }
+*/
 
 tw_lptype gates_lps[] = {
     {   (init_f) gates_init,
