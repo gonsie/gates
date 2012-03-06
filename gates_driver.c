@@ -310,7 +310,7 @@ void gates_custom_round_robin_mapping_setup(void){
     int lpgid, lplid;
     int i, j;
     
-    nlp_per_kp = ceil((double) g_tw_nlp / (double) g_tw_nkp);
+    nlp_per_kp = ceil((double) g_tw_nlp / (double) (g_tw_nkp * tw_nnodes()) );
     if(!nlp_per_kp) tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
     
     g_tw_lp_offset = g_tw_mynode;

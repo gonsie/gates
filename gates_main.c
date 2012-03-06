@@ -19,19 +19,22 @@ const tw_optdef gates_opts[] = {
     TWOPT_END(),
 };
 
+extern unsigned int nkp_per_pe;
+
 #define gates_main main
 
 int gates_main(int argc, char* argv[]){
     
     int i;
-    
-    //g_tw_nkp = 1;
-    
+        
     tw_opt_add(gates_opts);
-    
     tw_init(&argc, &argv);
     
-    
+    if (tw_nnodes() != NP_COUNT) {
+        printf("ERROR: expected %d processors but %d were defined\n", NP_COUNT, tw_nnodes());
+        return 1;
+    }
+
     
     g_tw_mapping = CUSTOM;
     g_tw_custom_initial_mapping = &gates_custom_round_robin_mapping_setup;
@@ -40,17 +43,23 @@ int gates_main(int argc, char* argv[]){
     g_tw_events_per_pe = LP_COUNT * MAX_GATE_INPUTS + SOURCE_OUTPUTS * 2 + 32000;
     g_tw_lookahead = 0.09;
     
-    g_tw_nlp = LP_COUNT;
+    int pe_nlp = LP_COUNT;
     if (g_tw_mynode < EXTRA_LP_COUNT) {
-        g_tw_nlp++;
+        pe_nlp++;
     }
     
-    tw_define_lps(g_tw_nlp, sizeof(message), 0);
-    for (i = 0; i < g_tw_nlp; i++) {
+    g_tw_npe = NP_COUNT;
+    
+    nkp_per_pe = 8; //over writes command line setting
+    g_tw_nkp = nkp_per_pe * NP_COUNT;
+    
+    printf("is this really fucking happening: int pe_nlp = %d, (tw_lpid) cast = %lu\n", pe_nlp, (tw_lpid) pe_nlp);
+    
+    tw_define_lps(pe_nlp, sizeof(message), 0);
+    printf("Node %d: g_tw_nlp = %d, pe_nlp = %d\n", g_tw_mynode, g_tw_nlp, pe_nlp);
+    for (i = 0; i < pe_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
     }
-    
-    
     
     char filename[100] = "/data.vbench";
     char *fullpath = dirname(argv[0]);
@@ -63,15 +72,6 @@ int gates_main(int argc, char* argv[]){
         }
         fclose(my_file);
     } else {
-        //Error checking
-        int np;
-        int rc = MPI_Comm_size(MPI_COMM_WORLD, &np);
-        printf("(%d)", rc);
-        if (np != NP_COUNT) {
-            printf("ERROR: expected %d processors but %d were defined\n", NP_COUNT, np);
-            return 1;
-        }
-        
         //IO
         //printf("%d is attempting to start io\n", g_tw_mynode);
         MPI_File fh;
