@@ -74,8 +74,12 @@ extern tw_lptype gates_lps[];
 extern char global_input[][LINE_LENGTH+1];
 
 //Custom Mapping functions
-void gates_custom_mapping(void);
-tw_lp * gates_mapping_to_lp(tw_lpid lpid);
-tw_peid gates_map(tw_lpid gid);
+void gates_custom_linear_mapping_setup(void);
+tw_lp * gates_custom_linear_mapping_to_local(tw_lpid lpid);
+tw_peid gates_custom_linear_mapping_to_pe(tw_lpid gid);
+
+void gates_custom_round_robin_mapping_setup(void);
+tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid lpid);
+tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid);
 
 #endif

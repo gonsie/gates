@@ -296,7 +296,62 @@ void gates_final(gate_state *s, tw_lp *lp){
     return;
 }
 
-tw_peid gates_map(tw_lpid gid){
+extern unsigned int nkp_per_pe;
+#define VERIFY_MAPPING 1
+
+tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
+    return (tw_peid) gid % NP_COUNT;
+}
+
+void gates_custom_round_robin_mapping_setup(void){
+    tw_pe *pe;
+    int kpid;
+    int nlp_per_kp;
+    int lpgid, lplid;
+    int i, j;
+    
+    nlp_per_kp = ceil((double) g_tw_nlp / (double) g_tw_nkp);
+    if(!nlp_per_kp) tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
+    
+    g_tw_lp_offset = g_tw_mynode;
+    
+#if VERIFY_MAPPING
+    printf("Node %d: nlp %d, offset %d\n", (int) g_tw_mynode, (int) g_tw_nlp, (int) g_tw_lp_offset);
+#endif
+    
+    for (kpid = 0, lplid = 0, pe = NULL; (pe = tw_pe_next(pe)); ) {
+        
+        lpgid = g_tw_lp_offset;
+        
+        for (i = 0; i < nkp_per_pe; i++, kpid++) {
+            
+            tw_kp_onpe(kpid, pe);
+            
+            for (j = 0; j < nlp_per_kp && lpgid < g_tw_nlp; j++, lpgid += NP_COUNT, lplid++) {
+                
+                tw_lp_onpe(lplid, pe, lpgid);
+                tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
+                
+#if VERIFY_MAPPING
+                if (0 == j) {
+                    printf("PE %d\tKP %d\tLP %d\n", pe->id, kpid, lpgid);
+                }
+#endif
+            }
+        }
+    }
+}
+
+tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
+    assert(gid >= 0);
+    assert(gid < LP_COUNT * tw_nnodes() + EXTRA_LP_COUNT);
+    
+    int id = gid / NP_COUNT;
+    return g_tw_lp[id];
+}
+
+
+tw_peid gates_custom_linear_mapping_to_pe(tw_lpid gid){
     if (gid >= EXTRA_LP_COUNT * (LP_COUNT + 1)) {
         return (tw_peid) ((gid - EXTRA_LP_COUNT) / LP_COUNT);
     } else {
@@ -304,9 +359,7 @@ tw_peid gates_map(tw_lpid gid){
     }
 }
 
-extern unsigned int nkp_per_pe;
-//#define VERIFY_MAPPING 1
-void gates_custom_mapping(void){
+void gates_custom_linear_mapping_setup(void){
     tw_pe *pe;
     int nlp_per_kp;
     int lpid, kpid;
@@ -347,7 +400,7 @@ void gates_custom_mapping(void){
     }
 }
 
-tw_lp * gates_mapping_to_lp(tw_lpid lpid){
+tw_lp * gates_custom_linear_mapping_to_local(tw_lpid lpid){
     assert(lpid >= 0);
     assert(lpid < LP_COUNT * tw_nnodes() + EXTRA_LP_COUNT);
     
@@ -361,7 +414,7 @@ tw_lptype gates_lps[] = {
         (event_f) gates_event,
         (revent_f) gates_event_rc,
         (final_f) gates_final,
-        (map_f) gates_map,
+        (map_f) gates_custom_round_robin_mapping_to_pe,
         sizeof(gate_state)  },
     { 0 },
 };
