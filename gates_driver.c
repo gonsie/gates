@@ -56,6 +56,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         }
         
         s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
+        s->inputs->alloc = count - 2;
         s->inputs->size = count - 2;
         
         switch (s->inputs->size) {
@@ -72,6 +73,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         }
         
         s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_count * sizeof(pair), 1);
+        s->outputs->alloc = output_count;
         s->outputs->size = 0;
         
         if (s->gate_type == OUTPUT_GATE) {
@@ -97,7 +99,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         
         //printf("%d is all done! my type is %d\n", self, s->gate_type);
     } else {
-        //printf("ERROR: lp with gid %d (>= %d) was inited \n", self, TOTAL_GATE_COUNT);
+        printf("ERROR: lp with gid %d (>= %d) was inited \n", self, TOTAL_GATE_COUNT);
     }
     
 }
@@ -149,12 +151,20 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 tw_event_send(e);
             }
         } else {
+            if (s->outputs->alloc <= s->outputs->size) {
+                printf("Node %d wants to add %d to outputs, but alloc is %d and size is %d\n", self, in_msg->data.value, s->outputs->alloc, s->outputs->size);
+                assert(s->outputs->alloc > s->outputs->size);
+            }
             SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));
             s->outputs->size++;
         }
     } else if (in_msg->type == SOURCE_MSG) {
         //s->gate_function(s->inputs, s->outputs);
         //printf("Source doing a wave of inputs\n");
+        //Assume node 0 is an input
+        if (self == 0) {
+            printf("Source nodes doing a wave of inputs at %d.\n", (int) tw_now(lp));
+        }
         for (i = 0; i < s->outputs->size; i++) {
             double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
             tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);

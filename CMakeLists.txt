@@ -57,6 +57,6 @@ SET(test_srcs
     gate.h
 )
 
-ADD_EXECUTABLE(test_gates ${test_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
+#ADD_EXECUTABLE(test_gates ${test_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
-TARGET_LINK_LIBRARIES(test_gates ROSS m)    
+#TARGET_LINK_LIBRARIES(test_gates ROSS m)    

@@ -38,6 +38,7 @@ typedef struct pair_t {
 
 typedef struct vector_t {
     int size;
+    int alloc;
     pair array[];
 } *vector;
 
