@@ -25,7 +25,7 @@ FILE * node_out_file;
 int global_swap_count = 0;
 int error_count = 0;
 
-inline void SWAP(int *a, int *b) {
+void SWAP(int *a, int *b) {
     // a ^= b; b ^= a; a ^= b; 
     int temp = *a;
     *a = *b;
