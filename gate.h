@@ -14,21 +14,16 @@
 
 //Gate Types
 #define GATE_TYPE_COUNT (12)
-#define SOURCE_GATE (0)
-#define SINK_GATE (1)
-#define INPUT_GATE (2)
-#define OUTPUT_GATE (3)
-#define NOT_GATE (4)
-#define DFF_GATE (5)
-#define AND_GATE (6)
-#define NAND_GATE (7)
-#define OR_GATE (8)
-#define NOR_GATE (9)
-#define XOR_GATE (10)
-#define XNOR_GATE (11)
-
-#define SOURCE_ID (-1)
-#define SINK_ID (-2)
+#define INPUT_GATE (0)
+#define OUTPUT_GATE (1)
+#define NOT_GATE (2)
+#define DFF_GATE (3)
+#define AND_GATE (4)
+#define NAND_GATE (5)
+#define OR_GATE (6)
+#define NOR_GATE (7)
+#define XOR_GATE (8)
+#define XNOR_GATE (9)
 
 #endif
 

@@ -181,18 +181,6 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         msg->data.gid = self;
         msg->data.value = -1;
         tw_event_send(e);
-    } else if (self == SINK_ID) {
-        //s->gate_func(s->inputs, s->outputs);
-        //printf("SUNK\tgid: %d\tval: %d\n", (int) in_msg->data.gid, (int) in_msg->data.value);
-        if (in_msg->type == SINK_MSG) {
-            printf("%2.3f: Sink has processed %d messages\n", tw_now(lp), s->received_events);
-            tw_event *e = tw_event_new(self, sink_interval, lp);
-            message *msg = tw_event_data(e);
-            msg->type = SINK_MSG;
-            msg->data.gid = self;
-            msg->data.value = -1;
-            tw_event_send(e);
-        }
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
@@ -262,8 +250,6 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_rand_reverse_unif(lp->rng);
             tw_rand_reverse_unif(lp->rng);
         }
-    } else if (self == SINK_ID) {
-        //do nothing
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         assert(s->inputs->size >= 0);
         for (i = 0; i < s->inputs->size; i++) {
@@ -296,11 +282,6 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 
 void gates_final(gate_state *s, tw_lp *lp){
     int self = lp->gid;
-    
-    //wrap up
-    if (self == SOURCE_ID || self == SINK_ID) {
-        printf("%d processed %d events\n", self, s->received_events);
-    }
     
     if(FALSE) {
         printf("#%d e%d\n", self, s->received_events);

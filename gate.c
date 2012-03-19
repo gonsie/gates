@@ -9,18 +9,6 @@
 #include "gates_model.h"
 #include "gate.h"
 
-int SOURCE_func(vector input, vector output){
-    return 0;
-}
-
-int SINK_func(vector input, vector output){
-    int i;
-    for(i = 0; i < input->size; i++){
-        //printf("Received a %d, supposedly from gate with id %d.\n", input->array[i].value, input->array[i].gid);
-    }
-    return 0;
-}
-
 int INPUT_func(vector input, vector output){
     int change_flag = FALSE;
     if (output->array[0].value != input->array[0].value) {
@@ -155,8 +143,6 @@ int XNOR_func(vector input, vector output){
 }
 
 gate_func function_array[GATE_TYPE_COUNT] = {
-    &SOURCE_func,
-    &SINK_func,
     &INPUT_func,
     &OUTPUT_func,
     &NOT_func,
