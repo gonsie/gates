@@ -30,8 +30,8 @@ int gates_main(int argc, char* argv[]){
     tw_opt_add(gates_opts);
     tw_init(&argc, &argv);
     
-    if (tw_nnodes() != NP_COUNT) {
-        printf("ERROR: expected %d processors but %d were defined\n", NP_COUNT, tw_nnodes());
+    if (tw_nnodes() != GLOBAL_NP_COUNT) {
+        printf("ERROR: expected %d processors but %d were defined\n", GLOBAL_NP_COUNT, tw_nnodes());
         return 1;
     }
 

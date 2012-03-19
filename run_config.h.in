@@ -8,9 +8,17 @@
 #define _run_config_h
 
 #define TOTAL_GATE_COUNT @_ngates@
-#define NP_COUNT @_np@
+#define LINE_LENGTH @_ll@
+
+#define GLOBAL_NP_COUNT @_np@
+
+//Duplication Code
+#define X_COUNT @_x@
+#define Y_COUNT @_y@
+#define COPY_COUNT @_xy@
+#define INSTANCE_NP_COUNT @_inp@
+
 #define LP_COUNT @_nlp@
 #define EXTRA_LP_COUNT @_xlp@
-#define LINE_LENGTH @_ll@
 
 #endif

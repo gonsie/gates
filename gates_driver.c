@@ -291,7 +291,7 @@ void gates_final(gate_state *s, tw_lp *lp){
 //#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
-    return (tw_peid) gid % NP_COUNT;
+    return (tw_peid) gid % GLOBAL_NP_COUNT;
 }
 
 void gates_custom_round_robin_mapping_setup(void){
@@ -326,7 +326,7 @@ void gates_custom_round_robin_mapping_setup(void){
                 nlps++;
             }
             
-            for (j = 0; j < nlps; j++, lpgid += NP_COUNT, lplid++) {
+            for (j = 0; j < nlps; j++, lpgid += GLOBAL_NP_COUNT, lplid++) {
                 assert(lpgid < TOTAL_GATE_COUNT);
                 
                 tw_lp_onpe(lplid, pe, lpgid);
@@ -346,7 +346,7 @@ tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
     assert(gid >= 0);
     assert(gid < LP_COUNT * tw_nnodes() + EXTRA_LP_COUNT);
     
-    int id = gid / NP_COUNT;
+    int id = gid / GLOBAL_NP_COUNT;
     return g_tw_lp[id];
 }
 
