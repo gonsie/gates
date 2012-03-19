@@ -32,8 +32,8 @@ typedef int LOGIC;
 
 //Model structs
 typedef struct pair_t {
-    int gid;
-    int value;
+    unsigned int gid;
+    unsigned int value;
 } pair;
 
 typedef struct vector_t {
@@ -54,7 +54,7 @@ extern gate_func function_array[];
 typedef struct {
     
     //gate specific information
-    int gate_type;
+    unsigned int gate_type;
     
     //variables for linking gates
     vector inputs;

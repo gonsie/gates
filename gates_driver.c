@@ -25,28 +25,28 @@ FILE * node_out_file;
 int global_swap_count = 0;
 int error_count = 0;
 
-void SWAP(int *a, int *b) {
+void SWAP(unsigned int *a, unsigned int *b) {
     // a ^= b; b ^= a; a ^= b; 
-    int temp = *a;
+    unsigned int temp = *a;
     *a = *b;
     *b = temp;
     global_swap_count++;
 }
 
 void gates_init(gate_state *s, tw_lp *lp){
-    int self = lp->gid;
+    unsigned int self = lp->gid;
     s->received_events = 0;
     s->calc = FALSE;
     
     if (self < TOTAL_GATE_COUNT) {
         int type = -1;
         int output_count = 0;
-        int inputs[MAX_GATE_INPUTS];
+        unsigned int inputs[MAX_GATE_INPUTS];
         
-        int count = sscanf(global_input[lp->id], "%d %d %d %d %d %d", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
+        int count = sscanf(global_input[lp->id], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
         if (count < 2) {
             error_count++;
-            if (error_count < 10) printf("count is %d lp %d (locally %d) has line %s\n", count, self, (int) lp->id, global_input[lp->id]);
+            if (error_count < 10) printf("count is %d lp %u (locally %lu) has line %s\n", count, self, lp->id, global_input[lp->id]);
             return;
         }
         s->gate_type = type;
@@ -97,9 +97,9 @@ void gates_init(gate_state *s, tw_lp *lp){
             tw_event_send(e2);
         }
         
-        //printf("%d is all done! my type is %d\n", self, s->gate_type);
+        //printf("%u is all done! my type is %d\n", self, s->gate_type);
     } else {
-        printf("ERROR: lp with gid %d (>= %d) was inited \n", self, TOTAL_GATE_COUNT);
+        printf("ERROR: lp with gid %u (>= %u) was inited \n", self, TOTAL_GATE_COUNT);
     }
     
 }
@@ -118,25 +118,25 @@ tw_stime clock_round(tw_stime now){
 
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
-    int self = lp->gid;
+    unsigned int self = lp->gid;
     
     *(int *) bf = (int) 0;
     
 #if DEBUG_TRACE
-    fprintf(node_out_file, "FWDE: #%d %lu %lu %lu %lu %d %2.3f %d %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
+    fprintf(node_out_file, "FWDE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
     fflush(node_out_file);
 #endif
     
-    //printf("Processing event type %d on lp %d\n", in_msg->type, self);
+    //printf("Processing event type %d on lp %u\n", in_msg->type, self);
     /*
      if (tw_now(lp) >= 29.2) {
-     printf("#%d processing event type %d\n", self, in_msg->type);
+     printf("#%u processing event type %d\n", self, in_msg->type);
      }
      */
     
     s->received_events++;
     if(lp->id == 0 && error_count != 0){
-        tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, (int) g_tw_mynode);
+        tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, g_tw_mynode);
     }
     
     if (in_msg->type == SETUP_MSG) {
@@ -152,7 +152,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             }
         } else {
             if (s->outputs->alloc <= s->outputs->size) {
-                printf("Node %d wants to add %d to outputs, but alloc is %d and size is %d\n", self, in_msg->data.value, s->outputs->alloc, s->outputs->size);
+                printf("Node %u wants to add %u to outputs, but alloc is %d and size is %d\n", self, in_msg->data.value, s->outputs->alloc, s->outputs->size);
                 assert(s->outputs->alloc > s->outputs->size);
             }
             SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));
@@ -163,7 +163,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //printf("Source doing a wave of inputs\n");
         //Assume node 0 is an input
         if (self == 0) {
-            printf("Source nodes doing a wave of inputs at %d.\n", (int) tw_now(lp));
+            printf("Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
         }
         for (i = 0; i < s->outputs->size; i++) {
             double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
@@ -194,7 +194,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             bf->c0 = 1;
             s->calc = TRUE;
             double jitter_offset = clock_round(tw_now(lp));
-            if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %d is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
+            if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %u is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
             tw_event *e = tw_event_new(self, jitter_offset + 0.5, lp);
             message *msg =  tw_event_data(e);
             msg->type = LOGIC_CALC_MSG;
@@ -216,26 +216,24 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             msg->data.gid = self;
             msg->data.value = s->outputs->array[i].value;
             tw_event_send(e);
-            //printf("SEND\tgid: %d\tgtype: %d\tsend: %d\tto: %d\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
+            //printf("SEND\tgid: %u\tgtype: %d\tsend: %u\tto: %u\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
         }
     } else {
-        printf("ERROR: could not process message type %d on lp %d\n", in_msg->type, self);
+        printf("ERROR: could not process message type %d on lp %u\n", in_msg->type, self);
     }
 }
 
 void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
-    int self = lp->gid;
+    unsigned int self = lp->gid;
     
     s->received_events--;
-    //printf("%d reversing %d\n", self, in_msg->type);
+    //printf("%u reversing %d\n", self, in_msg->type);
     //fflush(stdout);
     assert(in_msg->type >= 0);
-    assert(self >= 0);
-    assert(in_msg->data.gid >= 0);
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
-            assert(s->inputs->size >=0);
+            assert(s->inputs->size >= 0);
             for (i = 0; i < s->inputs->size; i++) {
                 tw_rand_reverse_unif(lp->rng);
             }
@@ -270,21 +268,21 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_rand_reverse_unif(lp->rng);
         }
     } else {
-        printf("ERROR: could not process reverse message type %d on lp %d\n", in_msg->type, self);
+        printf("ERROR: could not process reverse message type %d on lp %u\n", in_msg->type, self);
     }
     
 #if DEBUG_TRACE
-    fprintf(node_out_file, "REVE: #%d %lu %lu %lu %lu %d %2.3f %d %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
+    fprintf(node_out_file, "REVE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
     fflush(node_out_file);
 #endif
     
 }
 
 void gates_final(gate_state *s, tw_lp *lp){
-    int self = lp->gid;
+    unsigned int self = lp->gid;
     
     if(FALSE) {
-        printf("#%d e%d\n", self, s->received_events);
+        printf("#%u e%d\n", self, s->received_events);
         fflush(stdout);
     }
     return;
@@ -310,7 +308,7 @@ void gates_custom_round_robin_mapping_setup(void){
     g_tw_lp_offset = g_tw_mynode;
     
 #if VERIFY_MAPPING
-    printf("Node %d: nlp %d, offset %d, lps_per_kp %d, extra_kps %d\n", (int) g_tw_mynode, (int) g_tw_nlp, (int) g_tw_lp_offset, lps_per_kp, extra_kps);
+    printf("Node %d: nlp %d, offset %d, lps_per_kp %d, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, lps_per_kp, extra_kps);
 #endif
     
     //This loop happens once on each pe
@@ -386,7 +384,7 @@ void gates_custom_linear_mapping_setup(void){
                 tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
 #if VERIFY_MAPPING
                 if (0 == j % 20000) {
-                    printf("Node %d\tPE %d\tKP %d\t%d\n", g_tw_mynode, pe->id, kpid, (int )lpid + g_tw_lp_offset);
+                    printf("Node %d\tPE %d\tKP %d\t%d\n", g_tw_mynode, pe->id, kpid, lpid + g_tw_lp_offset);
                 }
 #endif
             }
