@@ -63,7 +63,6 @@ typedef struct {
     
     int received_events;
     int calc;
-    int stat_output_change;
     
 } gate_state;
 

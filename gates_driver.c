@@ -205,7 +205,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         if (s->outputs->size == 0){
             return;
         }
-        s->stat_output_change += function_array[s->gate_type](s->inputs, s->outputs);
+        function_array[s->gate_type](s->inputs, s->outputs);
         s->calc = FALSE;
         //send event to outputs
         for(i = 0; i < s->outputs->size; i++){
