@@ -13,7 +13,7 @@
 #define MAX_GATE_OUTPUTS 5214
 
 //Gate Types
-#define GATE_TYPE_COUNT (12)
+#define GATE_TYPE_COUNT (11)
 #define INPUT_GATE (0)
 #define OUTPUT_GATE (1)
 #define NOT_GATE (2)
@@ -24,6 +24,7 @@
 #define NOR_GATE (7)
 #define XOR_GATE (8)
 #define XNOR_GATE (9)
+#define CLOCK_GATE (10)
 
 #endif
 

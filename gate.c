@@ -142,6 +142,14 @@ int XNOR_func(vector input, vector output){
     return LOGIC_NOT(xor_change);
 }
 
+int CLOCK_func(vector input, vector output){
+    int i;
+    for (i = 0; i < output->size; i++) {
+        output->array[i].value = LOGIC_NOT(output->array[i].value);
+    }
+    return 1;
+}
+
 gate_func function_array[GATE_TYPE_COUNT] = {
     &INPUT_func,
     &OUTPUT_func,
@@ -153,4 +161,5 @@ gate_func function_array[GATE_TYPE_COUNT] = {
     &NOR_func,
     &XOR_func,
     &XNOR_func,
+    &CLOCK_func,
 };
