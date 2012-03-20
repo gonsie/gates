@@ -147,7 +147,7 @@ int CLOCK_func(vector input, vector output){
     for (i = 0; i < output->size; i++) {
         output->array[i].value = LOGIC_NOT(output->array[i].value);
     }
-    return 1;
+    return TRUE;
 }
 
 gate_func function_array[GATE_TYPE_COUNT] = {
