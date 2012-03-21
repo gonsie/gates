@@ -77,6 +77,8 @@ extern char global_input[][LINE_LENGTH+1];
 //Global vars used for duplication
 extern int instance_node;
 extern int instance_id;
+extern int instance_x;
+extern int instance_y;
 
 //Custom Mapping functions
 void gates_custom_linear_mapping_setup(void);

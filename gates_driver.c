@@ -19,6 +19,8 @@ char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 
 int instance_node = 0;
 int instance_id = 0;
+int instance_x = 0;
+int instance_y = 0;
 
 //#define DEBUG_TRACE 1
 #if DEBUG_TRACE
@@ -38,72 +40,84 @@ void SWAP(unsigned int *a, unsigned int *b) {
 
 void gates_init(gate_state *s, tw_lp *lp){
     unsigned int self = lp->gid;
+    int i;
     s->received_events = 0;
     s->calc = FALSE;
     
-    if (self < TOTAL_GATE_COUNT) {
-        int type = -1;
-        int output_count = 0;
-        unsigned int inputs[MAX_GATE_INPUTS];
-        
-        int count = sscanf(global_input[lp->id], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
-        if (count < 2) {
-            error_count++;
-            if (error_count < 10) printf("count is %d lp %u (locally %lu) has line %s\n", count, self, lp->id, global_input[lp->id]);
-            return;
-        }
-        s->gate_type = type;
-        if (s->gate_type == INPUT_GATE) {
-            //inputs[0] = SOURCE_ID;
-            //count++;
-        }
-        
-        s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
-        s->inputs->alloc = count - 2;
-        s->inputs->size = count - 2;
-        
-        switch (s->inputs->size) {
-            case 4:
-                s->inputs->array[3].gid = inputs[3];
-            case 3:
-                s->inputs->array[2].gid = inputs[2];
-            case 2:
-                s->inputs->array[1].gid = inputs[1];
-            case 1:
-                s->inputs->array[0].gid = inputs[0];
-            default:
-                break;
-        }
-        
-        s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_count * sizeof(pair), 1);
-        s->outputs->alloc = output_count;
-        s->outputs->size = 0;
-        
-        if (s->gate_type == OUTPUT_GATE) {
-            //s->outputs->array[0].gid = SINK_ID;
-            //s->outputs->size++;
-        }
-        
-        tw_event *e = tw_event_new(self, 1, lp);
-        message *msg = tw_event_data(e);
-        msg->type = SETUP_MSG;
-        msg->data.gid = self;
-        msg->data.value = self;
-        tw_event_send(e);
-        
-        if (s->gate_type == INPUT_GATE) {
-            tw_event *e2 = tw_event_new(self, 10.5, lp);
-            message *msg2 = tw_event_data(e2);
-            msg2->type = SOURCE_MSG;
-            msg2->data.gid = self;
-            msg2->data.value = -1;
-            tw_event_send(e2);
-        }
-        
-        //printf("%u is all done! my type is %d\n", self, s->gate_type);
-    } else {
-        printf("ERROR: lp with gid %u (>= %u) was inited \n", self, TOTAL_GATE_COUNT);
+    
+    int type = -1;
+    int output_count = 0;
+    unsigned int inputs[MAX_GATE_INPUTS];
+    
+    int count = sscanf(global_input[lp->id], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
+    
+    assert(count >= 2);
+    
+    s->gate_type = type;
+    if (s->gate_type == INPUT_GATE) {
+        for (i = 0; i < (count - 2); i++) {
+            if (inputs[i] > TOTAL_GATE_COUNT && instance_x != 0) { //This goes to a different instance
+                //needs to link to instance at (intsance_x - 1, instance_y)
+                int real_id = TOTAL_GATE_COUNT - inputs[i];
+                int instance_0 = instance_id * TOTAL_GATE_COUNT;
+                inputs[i] = instance_0 + real_id;
+                s->gate_type = DFF_GATE;
+            }
+        } 
     }
+    
+    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
+    s->inputs->alloc = count - 2;
+    s->inputs->size = count - 2;
+    
+    switch (s->inputs->size) {
+        case 4:
+            s->inputs->array[3].gid = inputs[3];
+        case 3:
+            s->inputs->array[2].gid = inputs[2];
+        case 2:
+            s->inputs->array[1].gid = inputs[1];
+        case 1:
+            s->inputs->array[0].gid = inputs[0];
+        default:
+            break;
+    }
+    
+    s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_count * sizeof(pair), 1);
+    s->outputs->alloc = output_count;
+    s->outputs->size = 0;
+    
+    if (s->gate_type == OUTPUT_GATE) {
+        //s->outputs->array[0].gid = SINK_ID;
+        //s->outputs->size++;
+    }
+    
+    tw_event *e = tw_event_new(self, 1, lp);
+    message *msg = tw_event_data(e);
+    msg->type = SETUP_MSG;
+    msg->data.gid = self;
+    msg->data.value = self;
+    tw_event_send(e);
+    
+    if (s->gate_type == INPUT_GATE) {
+        tw_event *e2 = tw_event_new(self, 10.5, lp);
+        message *msg2 = tw_event_data(e2);
+        msg2->type = SOURCE_MSG;
+        msg2->data.gid = self;
+        msg2->data.value = -1;
+        tw_event_send(e2);
+    }
+    
+    if (s->gate_type == CLOCK_GATE) {
+        tw_event *e2 = tw_event_new(self, 10.5, lp);
+        message *msg2 = tw_event_data(e2);
+        msg2->type = CLOCK_MSG;
+        msg2->data.gid = self;
+        msg2->data.value = 0;
+        tw_event_send(e2);
+    }
+    
+    //printf("%u is all done! my type is %d\n", self, s->gate_type);
     
 }
 
@@ -184,6 +198,24 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         msg->data.gid = self;
         msg->data.value = -1;
         tw_event_send(e);
+    } else if (in_msg->type == CLOCK_MSG) {
+        for (i = 0; i < s->outputs->size; i++) {
+            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+            tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
+            message *msg = tw_event_data(e);
+            msg->type = LOGIC_CARY_MSG;
+            msg->data.gid = self;
+            msg->data.value = in_msg->data.value;
+            tw_event_send(e);
+        }
+        
+        tw_event *c = tw_event_new(self, 1, lp);
+        message *cmsg = tw_event_data(c);
+        cmsg->type = CLOCK_MSG;
+        cmsg->data.gid = self;
+        cmsg->data.value = LOGIC_NOT(in_msg->data.value);
+        tw_event_send(c);
+        
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
@@ -249,6 +281,10 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         assert(s->outputs->size >= 0);
         for (i = 0; i < s->outputs->size; i++) {
             tw_rand_reverse_unif(lp->rng);
+            tw_rand_reverse_unif(lp->rng);
+        }
+    } else if (in_msg->type == CLOCK_MSG) {
+        for (i = 0; i < s->outputs->size; i++) {
             tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == LOGIC_CARY_MSG) {
