@@ -21,6 +21,7 @@ int instance_node = 0;
 int instance_id = 0;
 int instance_x = 0;
 int instance_y = 0;
+int instance_0 = 0;
 
 //#define DEBUG_TRACE 1
 #if DEBUG_TRACE
@@ -65,7 +66,6 @@ void gates_init(gate_state *s, tw_lp *lp){
                 if (instance_x != 0) { //This goes to a different instance
                     //needs to link to instance at (intsance_x - 1, instance_y)
                     int real_id = TOTAL_GATE_COUNT - inputs[0];
-                    int instance_0 = instance_id * TOTAL_GATE_COUNT;
                     inputs[0] = instance_0 + real_id;
                     s->gate_type = DFF_GATE;
                 } else {
@@ -81,13 +81,13 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     switch (s->inputs->size) {
         case 4:
-            s->inputs->array[3].gid = inputs[3];
+            s->inputs->array[3].gid = inputs[3] + instance_0;
         case 3:
-            s->inputs->array[2].gid = inputs[2];
+            s->inputs->array[2].gid = inputs[2] + instance_0;
         case 2:
-            s->inputs->array[1].gid = inputs[1];
+            s->inputs->array[1].gid = inputs[1] + instance_0;
         case 1:
-            s->inputs->array[0].gid = inputs[0];
+            s->inputs->array[0].gid = inputs[0] + instance_0;
         default:
             break;
     }
@@ -178,7 +178,11 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             }
         } else {
             if (s->outputs->alloc <= s->outputs->size) {
-                printf("Node %u wants to add %u to outputs, but alloc is %d and size is %d\n", self, in_msg->data.value, s->outputs->alloc, s->outputs->size);
+                printf("Node %u wants to add %u to outputs, but alloc is %d and size is %d:: ", self, in_msg->data.value, s->outputs->alloc, s->outputs->size);
+                for (i = 0; i < s->outputs->size; i++) {
+                    printf("%u ", s->outputs->array[i].gid);
+                }
+                printf("::\n");
                 assert(s->outputs->alloc > s->outputs->size);
             }
             SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));

@@ -57,6 +57,9 @@ int gates_main(int argc, char* argv[]){
     instance_id = g_tw_mynode / INSTANCE_NP_COUNT;
     instance_x = instance_id % X_COUNT;
     instance_y = instance_id / Y_COUNT;
+    instance_0 = instance_id * TOTAL_GATE_COUNT;    
+    
+    printf("Node %d: instance_id=%d, instance_node=%d, instance_x=%d, instance_y=%d\n", g_tw_mynode, instance_id, instance_node, instance_x, instance_y);
     
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {

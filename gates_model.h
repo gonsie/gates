@@ -79,6 +79,7 @@ extern int instance_node;
 extern int instance_id;
 extern int instance_x;
 extern int instance_y;
+extern int instance_0;
 
 //Custom Mapping functions
 void gates_custom_linear_mapping_setup(void);
