@@ -74,6 +74,10 @@ extern unsigned int sink_interval;
 extern tw_lptype gates_lps[];
 extern char global_input[][LINE_LENGTH+1];
 
+//Global vars used for duplication
+extern int instance_node;
+extern int instance_id;
+
 //Custom Mapping functions
 void gates_custom_linear_mapping_setup(void);
 tw_lp * gates_custom_linear_mapping_to_local(tw_lpid lpid);

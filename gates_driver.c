@@ -17,6 +17,9 @@ unsigned int sink_interval = 5;
 
 char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 
+int instance_node = 0;
+int instance_id = 0;
+
 //#define DEBUG_TRACE 1
 #if DEBUG_TRACE
 FILE * node_out_file;
@@ -291,7 +294,10 @@ void gates_final(gate_state *s, tw_lp *lp){
 //#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
-    return (tw_peid) gid % GLOBAL_NP_COUNT;
+    int ins_id = gid / TOTAL_GATE_COUNT;
+    int ins_gid = gid % TOTAL_GATE_COUNT;
+    int ins_node = ins_gid % INSTANCE_NP_COUNT;
+    return (tw_peid) (INSTANCE_NP_COUNT * ins_id) + ins_node;
 }
 
 void gates_custom_round_robin_mapping_setup(void){
@@ -305,7 +311,7 @@ void gates_custom_round_robin_mapping_setup(void){
     int extra_kps = g_tw_nlp - (lps_per_kp * g_tw_nkp);
     
     //The gid of my g_tw_lp[0]
-    g_tw_lp_offset = g_tw_mynode;
+    g_tw_lp_offset = (instance_id * TOTAL_GATE_COUNT) + instance_node;
     
 #if VERIFY_MAPPING
     printf("Node %d: nlp %d, offset %d, lps_per_kp %d, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, lps_per_kp, extra_kps);
@@ -326,9 +332,7 @@ void gates_custom_round_robin_mapping_setup(void){
                 nlps++;
             }
             
-            for (j = 0; j < nlps; j++, lpgid += GLOBAL_NP_COUNT, lplid++) {
-                assert(lpgid < TOTAL_GATE_COUNT);
-                
+            for (j = 0; j < nlps; j++, lpgid += INSTANCE_NP_COUNT, lplid++) {
                 tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
                 
@@ -343,10 +347,8 @@ void gates_custom_round_robin_mapping_setup(void){
 }
 
 tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
-    assert(gid >= 0);
-    assert(gid < LP_COUNT * tw_nnodes() + EXTRA_LP_COUNT);
-    
-    int id = gid / GLOBAL_NP_COUNT;
+    int ins_gid = gid % TOTAL_GATE_COUNT;
+    int id = ins_gid / INSTANCE_NP_COUNT;
     return g_tw_lp[id];
 }
 

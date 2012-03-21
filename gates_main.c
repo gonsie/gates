@@ -48,9 +48,13 @@ int gates_main(int argc, char* argv[]){
     
     //My lp count
     g_tw_nlp = LP_COUNT;
-    if (g_tw_mynode < EXTRA_LP_COUNT) {
+    
+    instance_node = g_tw_mynode % INSTANCE_NP_COUNT;
+    if (instance_node < EXTRA_LP_COUNT) {
         g_tw_nlp++;
     }
+    
+    instance_id = g_tw_mynode / INSTANCE_NP_COUNT;
     
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {
@@ -78,10 +82,10 @@ int gates_main(int argc, char* argv[]){
         //NOTE: for some reason count is off
         int line_start, line_end;
         int current_id;
-        if (g_tw_mynode == 0) {
+        if (instance_node == 0) {
             line_start = 0;
         } else {
-            line_start = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT);
+            line_start = (instance_node * LP_COUNT) + min(instance_node, EXTRA_LP_COUNT);
         }
         line_end = line_start + g_tw_nlp;
         current_id = 0;
