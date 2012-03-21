@@ -51,17 +51,26 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     int count = sscanf(global_input[lp->id], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
     
+    if (count < 2) {
+        printf("%s\n", global_input[lp->id]);
+    }
     assert(count >= 2);
     
     s->gate_type = type;
     if (s->gate_type == INPUT_GATE) {
-        for (i = 0; i < (count - 2); i++) {
-            if (inputs[i] > TOTAL_GATE_COUNT && instance_x != 0) { //This goes to a different instance
-                //needs to link to instance at (intsance_x - 1, instance_y)
-                int real_id = TOTAL_GATE_COUNT - inputs[i];
-                int instance_0 = instance_id * TOTAL_GATE_COUNT;
-                inputs[i] = instance_0 + real_id;
-                s->gate_type = DFF_GATE;
+        if (count > 3) {
+            printf("This input gate %u has more than one input %d !\n", self, count -2);
+        } else if (count == 3) {
+            if (inputs[0] > TOTAL_GATE_COUNT) {
+                if (instance_x != 0) { //This goes to a different instance
+                    //needs to link to instance at (intsance_x - 1, instance_y)
+                    int real_id = TOTAL_GATE_COUNT - inputs[0];
+                    int instance_0 = instance_id * TOTAL_GATE_COUNT;
+                    inputs[0] = instance_0 + real_id;
+                    s->gate_type = DFF_GATE;
+                } else {
+                    count--;
+                }
             }
         } 
     }
