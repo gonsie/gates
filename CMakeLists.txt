@@ -17,7 +17,8 @@ ELSE(NOT x)
 ENDIF(NOT x)
 UNSET(x CACHE)
 
-# y
+# y --> use old policy to avoid "True / Yes / y"
+CMAKE_POLICY(SET CMP0012 OLD)
 IF(NOT y)
        SET(_y 1 CACHE INTERNAL "single height" FORCE)
 ELSE(NOT y)
