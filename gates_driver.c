@@ -58,21 +58,48 @@ void gates_init(gate_state *s, tw_lp *lp){
     assert(count >= 2);
     
     s->gate_type = type;
+    
+    /*
     if (s->gate_type == INPUT_GATE) {
         if (count > 3) {
             printf("This input gate %u has more than one input %d !\n", self, count -2);
         } else if (count == 3) {
-            if (inputs[0] > TOTAL_GATE_COUNT) {
+            if (inputs[0] >= TOTAL_GATE_COUNT) {
                 if (instance_x != 0) { //This goes to a different instance
                     //needs to link to instance at (intsance_x - 1, instance_y)
                     int real_id = TOTAL_GATE_COUNT - inputs[0];
-                    inputs[0] = instance_0 + real_id;
+                    inputs[0] = (instance_0 - TOTAL_GATE_COUNT) + real_id;
                     s->gate_type = DFF_GATE;
                 } else {
                     count--;
                 }
             }
         } 
+    }
+    */
+    
+    if (instance_x == 0) {
+        int tmp = 0;
+        unsigned int in2[MAX_GATE_INPUTS];
+        for (i = 0; i < count - 2; i++) {
+            if (inputs[i] < TOTAL_GATE_COUNT) {
+                in2[tmp] = inputs[i];
+                tmp++;
+            }
+        }
+        count = tmp + 2;
+        for (i = 0; i < tmp; i++) {
+            inputs[i] = in2[i] + instance_0;
+        }
+    } else {
+        for (i = 0; i < count - 2; i++) {
+            if (inputs[i] >= TOTAL_GATE_COUNT) {
+                int gate_id = inputs[i] - TOTAL_GATE_COUNT;
+                inputs[i] = (instance_0 - TOTAL_GATE_COUNT) + gate_id;
+            } else {
+                inputs[i] = inputs[i] + instance_0;
+            }
+        }
     }
     
     s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
@@ -81,16 +108,20 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     switch (s->inputs->size) {
         case 4:
-            s->inputs->array[3].gid = inputs[3] + instance_0;
+            s->inputs->array[3].gid = inputs[3];
         case 3:
-            s->inputs->array[2].gid = inputs[2] + instance_0;
+            s->inputs->array[2].gid = inputs[2];
         case 2:
-            s->inputs->array[1].gid = inputs[1] + instance_0;
+            s->inputs->array[1].gid = inputs[1];
         case 1:
-            s->inputs->array[0].gid = inputs[0] + instance_0;
+            s->inputs->array[0].gid = inputs[0];
         default:
             break;
     }
+    
+
+    output_count++;
+
     
     s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_count * sizeof(pair), 1);
     s->outputs->alloc = output_count;
@@ -346,6 +377,10 @@ tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
     int ins_id = gid / TOTAL_GATE_COUNT;
     int ins_gid = gid % TOTAL_GATE_COUNT;
     int ins_node = ins_gid % INSTANCE_NP_COUNT;
+    int tmp = (INSTANCE_NP_COUNT * ins_id) + ins_node;
+    if (tmp >= GLOBAL_NP_COUNT) {
+        printf("ALERT: someone is sending to %u on node %d", gid, tmp);
+    }
     return (tw_peid) (INSTANCE_NP_COUNT * ins_id) + ins_node;
 }
 
