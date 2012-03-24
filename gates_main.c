@@ -63,8 +63,6 @@ int gates_main(int argc, char* argv[]){
         printf("Error: Both INSTANCE_PER_NP and NP_PER_INSTANCE are false\n");
     }
     
-    printf("Node %d\tinstance_id=%d\tinstance_node=%d\tinstance_x=%d\tinstance_y=%d\tinstance_0=%d\n", g_tw_mynode, instance_id, instance_node, instance_x, instance_y, instance_0);
-    
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
