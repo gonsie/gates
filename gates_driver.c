@@ -376,12 +376,12 @@ void gates_final(gate_state *s, tw_lp *lp){
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
     int ins_id = gid / TOTAL_GATE_COUNT;
     int ins_gid = gid % TOTAL_GATE_COUNT;
-    int ins_node = ins_gid % INSTANCE_NP_COUNT;
-    int tmp = (INSTANCE_NP_COUNT * ins_id) + ins_node;
+    int ins_node = ins_gid % NP_PER_INSTANCE;
+    int tmp = (NP_PER_INSTANCE * ins_id) + ins_node;
     if (tmp >= GLOBAL_NP_COUNT) {
         printf("ALERT: someone is sending to %u on node %d", gid, tmp);
     }
-    return (tw_peid) (INSTANCE_NP_COUNT * ins_id) + ins_node;
+    return (tw_peid) (NP_PER_INSTANCE * ins_id) + ins_node;
 }
 
 void gates_custom_round_robin_mapping_setup(void){
@@ -416,7 +416,7 @@ void gates_custom_round_robin_mapping_setup(void){
                 nlps++;
             }
             
-            for (j = 0; j < nlps; j++, lpgid += INSTANCE_NP_COUNT, lplid++) {
+            for (j = 0; j < nlps; j++, lpgid += NP_PER_INSTANCE, lplid++) {
                 tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
                 
@@ -432,7 +432,7 @@ void gates_custom_round_robin_mapping_setup(void){
 
 tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
     int ins_gid = gid % TOTAL_GATE_COUNT;
-    int id = ins_gid / INSTANCE_NP_COUNT;
+    int id = ins_gid / NP_PER_INSTANCE;
     return g_tw_lp[id];
 }
 

@@ -16,7 +16,8 @@
 #define X_COUNT @_x@
 #define Y_COUNT @_y@
 #define COPY_COUNT @_xy@
-#define INSTANCE_NP_COUNT @_inp@
+#define INSTANCE_PER_NP @_inp@
+#define NP_PER_INSTANCE @_npi@
 
 #define LP_COUNT @_nlp@
 #define EXTRA_LP_COUNT @_xlp@

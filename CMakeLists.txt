@@ -20,36 +20,46 @@ UNSET(x CACHE)
 # y --> use old policy to avoid "True / Yes / y"
 CMAKE_POLICY(SET CMP0012 OLD)
 IF(NOT y)
-       SET(_y 1 CACHE INTERNAL "single height" FORCE)
+    SET(_y 1 CACHE INTERNAL "single height" FORCE)
 ELSE(NOT y)
-	SET(_y ${y} CACHE INTERNAL "multiple height no linking" FORCE)	
+    SET(_y ${y} CACHE INTERNAL "multiple height no linking" FORCE)	
 ENDIF(NOT y)
 UNSET(y CACHE)
 
 # calculate single instance size
 CMAKE_POLICY(SET CMP0007 OLD)
 EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_SOURCE_DIR}/ccx_mpi.bench
-   OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
+    OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
 STRING(REPLACE " " ";" _outlist ${_output})
 LIST(GET _outlist 0 _ngates)
 
 # calculate duplication run variables
 MATH(EXPR _xy "${_x} * ${_y}")
-MATH(EXPR _inp "${_np} / ${_xy}") # assume _xy evenly divides _np and _xy > 0
+IF(${_np} LESS ${_xy})
+# many instances on a single processor
+    MATH(EXPR _inp "${_xy} / ${_np}")
+    SET(_npi 0)
+    SET(_enp 1)
+ELSE(${_np} LESS ${_xy})
+# many processors for a single instance
+    MATH(EXPR _npi "${_np} / ${_xy}") # assume _xy evenly divides _np and _xy > 0
+    SET(_inp 0)
+    SET(_enp ${_npi})
+ENDIF(${_np} LESS ${_xy})
 
 # calculate single instance run variables
 MATH(EXPR _ng "${_ngates}")
-MATH(EXPR _nlp "${_ng}/${_inp}")
-MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_inp})")
+MATH(EXPR _nlp "${_ng}/${_enp}")
+MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
 
 # copy the data file to the build directory
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/ccx_data_np${_inp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_SOURCE_DIR}/data/ccx_data_np1.vbench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
 MATH(EXPR _ll  "${_linelen} + 1")
 
-#MESSAGE("configure_file ${_ngates} ${_ll} ${_np} ${_x} ${_y} ${_xy} ${_inp} ${_nlp} ${_xlp}")
+#MESSAGE("configure_file ${_ngates} ${_ll} ${_np} ${_x} ${_y} ${_xy} ${_inp} ${_npi} ${_nlp} ${_xlp}")
 
 # write the header with variables
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)

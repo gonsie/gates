@@ -49,12 +49,12 @@ int gates_main(int argc, char* argv[]){
     //My lp count
     g_tw_nlp = LP_COUNT;
     
-    instance_node = g_tw_mynode % INSTANCE_NP_COUNT;
+    instance_node = g_tw_mynode % NP_PER_INSTANCE;
     if (instance_node < EXTRA_LP_COUNT) {
         g_tw_nlp++;
     }
     
-    instance_id = g_tw_mynode / INSTANCE_NP_COUNT;
+    instance_id = g_tw_mynode / NP_PER_INSTANCE;
     instance_x = instance_id % X_COUNT;
     instance_y = instance_id / X_COUNT;
     instance_0 = instance_id * TOTAL_GATE_COUNT;    
