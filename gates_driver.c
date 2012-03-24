@@ -17,12 +17,6 @@ unsigned int sink_interval = 5;
 
 char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 
-int instance_node = 0;
-int instance_id = 0;
-int instance_x = 0;
-int instance_y = 0;
-int instance_0 = 0;
-
 //#define DEBUG_TRACE 1
 #if DEBUG_TRACE
 FILE * node_out_file;
@@ -41,6 +35,7 @@ void SWAP(unsigned int *a, unsigned int *b) {
 
 void gates_init(gate_state *s, tw_lp *lp){
     unsigned int self = lp->gid;
+    unsigned int gate = lp->id % TOTAL_GATE_COUNT;
     int i;
     s->received_events = 0;
     s->calc = FALSE;
@@ -50,10 +45,10 @@ void gates_init(gate_state *s, tw_lp *lp){
     int output_count = 0;
     unsigned int inputs[MAX_GATE_INPUTS];
     
-    int count = sscanf(global_input[lp->id], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
+    int count = sscanf(global_input[gate], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
     
     if (count < 2) {
-        printf("%s\n", global_input[lp->id]);
+        printf("%s\n", global_input[gate]);
     }
     assert(count >= 2);
     
@@ -78,7 +73,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
     */
     
-    if (instance_x == 0) {
+    if (instance_x(self) == 0) {
         int tmp = 0;
         unsigned int in2[MAX_GATE_INPUTS];
         for (i = 0; i < count - 2; i++) {
@@ -89,15 +84,15 @@ void gates_init(gate_state *s, tw_lp *lp){
         }
         count = tmp + 2;
         for (i = 0; i < tmp; i++) {
-            inputs[i] = in2[i] + instance_0;
+            inputs[i] = in2[i] + instance_0(self);
         }
     } else {
         for (i = 0; i < count - 2; i++) {
             if (inputs[i] >= TOTAL_GATE_COUNT) {
                 int gate_id = inputs[i] - TOTAL_GATE_COUNT;
-                inputs[i] = (instance_0 - TOTAL_GATE_COUNT) + gate_id;
+                inputs[i] = (instance_0(self) - TOTAL_GATE_COUNT) + gate_id;
             } else {
-                inputs[i] = inputs[i] + instance_0;
+                inputs[i] = inputs[i] + instance_0(self);
             }
         }
     }
@@ -434,6 +429,30 @@ tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
     int ins_gid = gid % TOTAL_GATE_COUNT;
     int id = ins_gid / NP_PER_INSTANCE;
     return g_tw_lp[id];
+}
+
+inline int instance_id(unsigned int gid) {
+    return gid / TOTAL_GATE_COUNT;
+}
+
+inline int instance_node(unsigned int gid) {
+    if (NP_PER_INSTANCE) {
+        // round robin mapping among processors
+        return  instance_id(gid) % NP_PER_INSTANCE;
+    }
+    return 0;
+}
+
+inline int instance_x(unsigned int gid) {
+    return instance_id(gid) % X_COUNT;
+}
+
+inline int instance_y(unsigned int gid) {
+    return instance_id(gid) / X_COUNT;
+}
+
+inline int instance_0(unsigned int gid) {
+    return instance_id(gid) * TOTAL_GATE_COUNT;
 }
 
 /*

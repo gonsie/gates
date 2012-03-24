@@ -49,15 +49,19 @@ int gates_main(int argc, char* argv[]){
     //My lp count
     g_tw_nlp = LP_COUNT;
     
-    instance_node = g_tw_mynode % NP_PER_INSTANCE;
-    if (instance_node < EXTRA_LP_COUNT) {
-        g_tw_nlp++;
+    int instnode = 0;
+    if (NP_PER_INSTANCE) {
+        //g_tw_events_per_pe /= NP_PER_INSTANCE;    //you can't have too many events
+        instnode = g_tw_mynode % NP_PER_INSTANCE;
+        if (instnode < EXTRA_LP_COUNT) {
+            g_tw_nlp++;
+        }
+    } else if (INSTANCE_PER_NP){
+        g_tw_events_per_pe *= INSTANCE_PER_NP;
+        g_tw_nlp *= INSTANCE_PER_NP;
+    } else {
+        printf("Error: Both INSTANCE_PER_NP and NP_PER_INSTANCE are false\n");
     }
-    
-    instance_id = g_tw_mynode / NP_PER_INSTANCE;
-    instance_x = instance_id % X_COUNT;
-    instance_y = instance_id / X_COUNT;
-    instance_0 = instance_id * TOTAL_GATE_COUNT;    
     
     printf("Node %d\tinstance_id=%d\tinstance_node=%d\tinstance_x=%d\tinstance_y=%d\tinstance_0=%d\n", g_tw_mynode, instance_id, instance_node, instance_x, instance_y, instance_0);
     
@@ -87,12 +91,16 @@ int gates_main(int argc, char* argv[]){
         //NOTE: for some reason count is off
         int line_start, line_end;
         int current_id;
-        if (instance_node == 0) {
+        if (INSTANCE_PER_NP || instnode == 0) {
             line_start = 0;
         } else {
-            line_start = (instance_node * LP_COUNT) + min(instance_node, EXTRA_LP_COUNT);
+            line_start = (instnode * LP_COUNT) + min(instnode, EXTRA_LP_COUNT);
         }
-        line_end = line_start + g_tw_nlp;
+        if (NP_PER_INSTANCE) {
+            line_end = line_start + g_tw_nlp;
+        } else {
+            line_end = line_start + LP_COUNT;
+        }
         current_id = 0;
         
         if (line_end > TOTAL_GATE_COUNT) {
