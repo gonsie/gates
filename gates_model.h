@@ -76,6 +76,7 @@ extern char global_input[][LINE_LENGTH+1];
 
 //Duplcation mapping functions
 inline int instance_node(unsigned int);
+inline int node_instance(unsigned int);
 inline int instance_id(unsigned int);
 inline int instance_x(unsigned int);
 inline int instance_y(unsigned int);

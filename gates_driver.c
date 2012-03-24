@@ -369,14 +369,10 @@ void gates_final(gate_state *s, tw_lp *lp){
 //#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
-    int ins_id = gid / TOTAL_GATE_COUNT;
-    int ins_gid = gid % TOTAL_GATE_COUNT;
-    int ins_node = ins_gid % NP_PER_INSTANCE;
-    int tmp = (NP_PER_INSTANCE * ins_id) + ins_node;
-    if (tmp >= GLOBAL_NP_COUNT) {
-        printf("ALERT: someone is sending to %u on node %d", gid, tmp);
+    if (NP_PER_INSTANCE) {
+        return (tw_peid) (NP_PER_INSTANCE * instance_id(gid)) + instance_node(gid);
     }
-    return (tw_peid) (NP_PER_INSTANCE * ins_id) + ins_node;
+    return node_instance(gid);
 }
 
 void gates_custom_round_robin_mapping_setup(void){
@@ -389,8 +385,15 @@ void gates_custom_round_robin_mapping_setup(void){
     int lps_per_kp = g_tw_nlp / g_tw_nkp;
     int extra_kps = g_tw_nlp - (lps_per_kp * g_tw_nkp);
     
-    //The gid of my g_tw_lp[0]
-    g_tw_lp_offset = (instance_id * TOTAL_GATE_COUNT) + instance_node;
+    //The gid of my g_tw_lp[0], round robin stride
+    int stride;
+    if (NP_PER_INSTANCE) {
+        g_tw_lp_offset = ((g_tw_mynode / NP_PER_INSTANCE) * TOTAL_GATE_COUNT) + (g_tw_mynode % NP_PER_INSTANCE);
+        stride = NP_PER_INSTANCE;
+    } else {
+        g_tw_lp_offset = g_tw_mynode * INSTANCE_PER_NP * TOTAL_GATE_COUNT;
+        stride = 1;
+    }
     
 #if VERIFY_MAPPING
     printf("Node %d: nlp %d, offset %d, lps_per_kp %d, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, lps_per_kp, extra_kps);
@@ -411,7 +414,7 @@ void gates_custom_round_robin_mapping_setup(void){
                 nlps++;
             }
             
-            for (j = 0; j < nlps; j++, lpgid += NP_PER_INSTANCE, lplid++) {
+            for (j = 0; j < nlps; j++, lpgid += stride, lplid++) {
                 tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
                 
@@ -426,8 +429,13 @@ void gates_custom_round_robin_mapping_setup(void){
 }
 
 tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
-    int ins_gid = gid % TOTAL_GATE_COUNT;
-    int id = ins_gid / NP_PER_INSTANCE;
+    int id = 0;
+    if (NP_PER_INSTANCE) {
+        int ins_gid = gid % TOTAL_GATE_COUNT;
+        id = ins_gid / NP_PER_INSTANCE;
+    } else {
+        id = gid - (instance_node(gid) * TOTAL_GATE_COUNT);
+    }
     return g_tw_lp[id];
 }
 
@@ -439,6 +447,13 @@ inline int instance_node(unsigned int gid) {
     if (NP_PER_INSTANCE) {
         // round robin mapping among processors
         return  instance_id(gid) % NP_PER_INSTANCE;
+    }
+    return 0;
+}
+
+inline int node_instance(unsigned int gid) {
+    if (INSTANCE_PER_NP) {
+        return instance_id(gid) % INSTANCE_PER_NP;
     }
     return 0;
 }
