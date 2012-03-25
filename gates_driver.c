@@ -40,6 +40,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->received_events = 0;
     s->calc = FALSE;
     
+    assert(self < COPY_COUNT * TOTAL_GATE_COUNT);
     
     int type = -1;
     int output_count = 0;
