@@ -436,7 +436,7 @@ tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
         int ins_gid = gid % TOTAL_GATE_COUNT;
         id = ins_gid / NP_PER_INSTANCE;
     } else {
-        id = gid - (instance_node(gid) * TOTAL_GATE_COUNT);
+        id = gid - instance_0(gid);
     }
     return g_tw_lp[id];
 }
