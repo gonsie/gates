@@ -388,7 +388,7 @@ void gates_custom_round_robin_mapping_setup(void){
     
     //The gid of my g_tw_lp[0], round robin stride
     int stride;
-    if (NP_PER_INSTANCE) {
+    if (NP_PER_INSTANCE > 0) {
         g_tw_lp_offset = ((g_tw_mynode / NP_PER_INSTANCE) * TOTAL_GATE_COUNT) + (g_tw_mynode % NP_PER_INSTANCE);
         stride = NP_PER_INSTANCE;
     } else {
@@ -431,7 +431,7 @@ void gates_custom_round_robin_mapping_setup(void){
 
 tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
     int id = 0;
-    if (NP_PER_INSTANCE) {
+    if (NP_PER_INSTANCE > 0) {
         int ins_gid = gid % TOTAL_GATE_COUNT;
         id = ins_gid / NP_PER_INSTANCE;
     } else {
@@ -445,7 +445,7 @@ inline int instance_id(unsigned int gid) {
 }
 
 inline int instance_node(unsigned int gid) {
-    if (NP_PER_INSTANCE) {
+    if (NP_PER_INSTANCE > 0) {
         // round robin mapping among processors
         return  (gid % TOTAL_GATE_COUNT) % NP_PER_INSTANCE;
     }
@@ -453,8 +453,8 @@ inline int instance_node(unsigned int gid) {
 }
 
 inline int node_instance(unsigned int gid) {
-    if (INSTANCE_PER_NP) {
-        return instance_id(gid) % INSTANCE_PER_NP;
+    if (INSTANCE_PER_NP > 0) {
+        return instance_id(gid) / INSTANCE_PER_NP;
     }
     return 0;
 }

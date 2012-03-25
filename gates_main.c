@@ -50,13 +50,13 @@ int gates_main(int argc, char* argv[]){
     g_tw_nlp = LP_COUNT;
     
     int instnode = 0;
-    if (NP_PER_INSTANCE) {
+    if (NP_PER_INSTANCE > 0) {
         //g_tw_events_per_pe /= NP_PER_INSTANCE;    //you can't have too many events
         instnode = g_tw_mynode % NP_PER_INSTANCE;
         if (instnode < EXTRA_LP_COUNT) {
             g_tw_nlp++;
         }
-    } else if (INSTANCE_PER_NP){
+    } else if (INSTANCE_PER_NP > 0){
         g_tw_events_per_pe *= INSTANCE_PER_NP;
         g_tw_nlp *= INSTANCE_PER_NP;
     } else {
@@ -89,12 +89,12 @@ int gates_main(int argc, char* argv[]){
         //NOTE: for some reason count is off
         int line_start, line_end;
         int current_id;
-        if (INSTANCE_PER_NP || instnode == 0) {
+        if (INSTANCE_PER_NP > 0 || instnode == 0) {
             line_start = 0;
         } else {
             line_start = (instnode * LP_COUNT) + min(instnode, EXTRA_LP_COUNT);
         }
-        if (NP_PER_INSTANCE) {
+        if (NP_PER_INSTANCE > 0) {
             line_end = line_start + g_tw_nlp;
         } else {
             line_end = line_start + LP_COUNT;
