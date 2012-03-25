@@ -115,8 +115,9 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
     
 
-    output_count++;
-
+    if (COPY_COUNT > 1) {
+        output_count++;
+    }
     
     s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_count * sizeof(pair), 1);
     s->outputs->alloc = output_count;
@@ -369,7 +370,7 @@ void gates_final(gate_state *s, tw_lp *lp){
 //#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
-    if (NP_PER_INSTANCE) {
+    if (NP_PER_INSTANCE > 0) {
         return (tw_peid) (NP_PER_INSTANCE * instance_id(gid)) + instance_node(gid);
     }
     return node_instance(gid);
@@ -446,7 +447,7 @@ inline int instance_id(unsigned int gid) {
 inline int instance_node(unsigned int gid) {
     if (NP_PER_INSTANCE) {
         // round robin mapping among processors
-        return  instance_id(gid) % NP_PER_INSTANCE;
+        return  (gid % TOTAL_GATE_COUNT) % NP_PER_INSTANCE;
     }
     return 0;
 }
