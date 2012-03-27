@@ -444,9 +444,13 @@ tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
     if (NP_PER_INSTANCE > 0) {
         int ins_gid = gid % TOTAL_GATE_COUNT;
         id = ins_gid / NP_PER_INSTANCE;
+        assert(id < LP_COUNT + 1);
     } else {
-        id = gid - instance_0(gid);
+        id = gid - (node_instance(gid) * INSTANCE_PER_NP * TOTAL_GATE_COUNT);
+        assert(id < INSTANCE_PER_NP * TOTAL_GATE_COUNT);
     }
+    assert(id >= 0);
+    
     return g_tw_lp[id];
 }
 
