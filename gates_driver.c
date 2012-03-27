@@ -213,6 +213,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 printf("::\n");
                 assert(s->outputs->alloc > s->outputs->size);
             }
+            assert(in_msg->data.value >= 0);
+            assert(in_msg->data.value < COPY_COUNT * TOTAL_GATE_COUNT);
             SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));
             s->outputs->size++;
         }
@@ -371,6 +373,8 @@ void gates_final(gate_state *s, tw_lp *lp){
 //#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
+    assert(gid >= 0);
+    assert(gid < COPY_COUNT * TOTAL_GATE_COUNT);
     if (NP_PER_INSTANCE > 0) {
         return (tw_peid) (NP_PER_INSTANCE * instance_id(gid)) + instance_node(gid);
     }
