@@ -99,7 +99,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
     
     for (i = 0; i < count - 2; i ++) {
-        assert(inpus[i] >= 0);
+        assert(inputs[i] >= 0);
         assert(inputs[i] < COPY_COUNT * TOTAL_GATE_COUNT);
     }
     
