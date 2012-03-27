@@ -98,6 +98,11 @@ void gates_init(gate_state *s, tw_lp *lp){
         }
     }
     
+    for (i = 0; i < count - 2; i ++) {
+        assert(inpus[i] >= 0);
+        assert(inputs[i] < COPY_COUNT * TOTAL_GATE_COUNT);
+    }
+    
     s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
     s->inputs->alloc = count - 2;
     s->inputs->size = count - 2;
