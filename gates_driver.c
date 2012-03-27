@@ -469,6 +469,9 @@ inline int instance_y(unsigned int gid) {
 }
 
 inline int instance_0(unsigned int gid) {
+    if (INSTANCE_PER_NP > 0) {
+        return node_instance(gid) * TOTAL_GATE_COUNT * INSTANCE_PER_NP;
+    }
     return instance_id(gid) * TOTAL_GATE_COUNT;
 }
 
