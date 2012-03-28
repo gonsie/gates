@@ -34,7 +34,13 @@ int gates_main(int argc, char* argv[]){
         printf("ERROR: expected %d processors but %d were defined\n", GLOBAL_NP_COUNT, tw_nnodes());
         return 1;
     }
-
+    
+    if (g_tw_mynode == 0) {
+        printf("Gates Configuration:\n\t");
+        printf("X_COUNT = %d * Y_COUNT = %d => COPY_COUNT = %d\n\t", X_COUNT, Y_COUNT, COPY_COUNT);
+        printf("NP_PER_INSTANCE = %d --or-- INSTANCE_PER_NP = %d\n\t", NP_PER_INSTANCE, INSTANCE_PER_NP);
+        printf("TOTAL_GATE_COUNT = %d, LP_COUNT = %d", TOTAL_GATE_COUNT, LP_COUNT);
+    }
     
     g_tw_mapping = CUSTOM;
     g_tw_custom_initial_mapping = &gates_custom_round_robin_mapping_setup;
