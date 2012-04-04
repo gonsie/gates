@@ -54,6 +54,12 @@ MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
 
 # copy the data file to the build directory
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
+SET(index 0)
+WHILE(index LESS ${_x})
+            CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data_${index}.vbench COPYONLY)
+            MATH(EXPR index "${index} + 1")
+ENDWHILE(index LESS ${_x})
+
 
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_SOURCE_DIR}/data/ccx_data_np1.vbench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
