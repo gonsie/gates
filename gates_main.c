@@ -46,7 +46,7 @@ int gates_main(int argc, char* argv[]){
     g_tw_custom_initial_mapping = &gates_custom_round_robin_mapping_setup;
     g_tw_custom_lp_global_to_local_map = &gates_custom_round_robin_mapping_to_local;
     
-    g_tw_events_per_pe = 400000 * COPY_COUNT;
+    g_tw_events_per_pe = 600000;
     g_tw_lookahead = MESSAGE_PAD;
     
     //My kp count
@@ -74,7 +74,12 @@ int gates_main(int argc, char* argv[]){
         tw_lp_settype(i, &gates_lps[0]);
     }
     
-    char filename[100] = "/data.vbench";
+    int fnum = g_tw_mynode % X_COUNT;
+    char filelead[10] = "/data_";
+    char fileend[10] = ".vbench";
+    char filename[100];
+    sprintf(filename, "%s%d%s", filelead, fnum, fileend);
+    //char filename[100] = "/data.vbench";
     char *fullpath = dirname(argv[0]);
     strcat(fullpath, filename);
     if (g_tw_synchronization_protocol == 1) {
