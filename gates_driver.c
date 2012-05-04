@@ -454,11 +454,11 @@ tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
     return g_tw_lp[id];
 }
 
-inline int instance_id(unsigned int gid) {
+int instance_id(unsigned int gid) {
     return gid / TOTAL_GATE_COUNT;
 }
 
-inline int instance_node(unsigned int gid) {
+int instance_node(unsigned int gid) {
     if (NP_PER_INSTANCE > 0) {
         // round robin mapping among processors
         return  (gid % TOTAL_GATE_COUNT) % NP_PER_INSTANCE;
@@ -466,22 +466,22 @@ inline int instance_node(unsigned int gid) {
     return 0;
 }
 
-inline int node_instance(unsigned int gid) {
+int node_instance(unsigned int gid) {
     if (INSTANCE_PER_NP > 0) {
         return instance_id(gid) / INSTANCE_PER_NP;
     }
     return 0;
 }
 
-inline int instance_x(unsigned int gid) {
+int instance_x(unsigned int gid) {
     return instance_id(gid) % X_COUNT;
 }
 
-inline int instance_y(unsigned int gid) {
+int instance_y(unsigned int gid) {
     return instance_id(gid) / X_COUNT;
 }
 
-inline int instance_0(unsigned int gid) {
+int instance_0(unsigned int gid) {
     return instance_id(gid) * TOTAL_GATE_COUNT;
 }
 
