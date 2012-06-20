@@ -82,6 +82,8 @@ int gates_main(int argc, char* argv[]){
     //char filename[100] = "/data.vbench";
     char *fullpath = dirname(argv[0]);
     strcat(fullpath, filename);
+    
+    //single processor, single file
     if (g_tw_synchronization_protocol == 1) {
         //sequential
         FILE *my_file = fopen(fullpath, "r");
@@ -89,9 +91,35 @@ int gates_main(int argc, char* argv[]){
             fgets(global_input[i], LINE_LENGTH, my_file);
         }
         fclose(my_file);
-    } else {
+    }
+    
+    // >=1 instance per processor, each gets the whole file, through a bcast
+    else if (INSTANCE_PER_NP > 0) {
+        printf("Reading!\n");
+        if (g_tw_mynode == 0) {
+            MPI_File fh;
+            MPI_Status req;
+            
+            MPI_File_open(MPI_COMM_SELF, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+            for (i = 0; i < g_tw_nlp; i++) {
+                MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[i], LINE_LENGTH-1, MPI_CHAR, &req);
+            }
+            MPI_File_close(&fh);
+        }
+        printf("Now for the bcast\n");
+        //Simple Bcast, no packing
+        MPI_Bcast(global_input[0], LINE_LENGTH+1, MPI_CHAR, 0, MPI_COMM_WORLD);
+        /* for (i = 0; i < g_tw_nlp; i++) { */
+        /*     MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD); */
+        /* } */
+        printf("Bcasts complete!\n");
+        if (g_tw_mynode == 1) printf("Did i get the bcast? %s\n", global_input[0]);
+    }
+    
+    // <1 instance per processor, each reads their part
+    else {
         //IO
-        //printf("%d is attempting to start io\n", g_tw_mynode);
+        printf("%d is attempting to start io\n", g_tw_mynode);
         MPI_File fh;
         MPI_Status req;
         
