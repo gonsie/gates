@@ -108,10 +108,10 @@ int gates_main(int argc, char* argv[]){
         }
         printf("Now for the bcast\n");
         //Simple Bcast, no packing
-        MPI_Bcast(global_input[0], LINE_LENGTH+1, MPI_CHAR, 0, MPI_COMM_WORLD);
-        /* for (i = 0; i < g_tw_nlp; i++) { */
-        /*     MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD); */
-        /* } */
+        
+        for (i = 0; i < g_tw_nlp; i++) {
+            MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+        }
         printf("Bcasts complete!\n");
         if (g_tw_mynode == 1) printf("Did i get the bcast? %s and %s\n", global_input[0], global_input[g_tw_nlp-2]);
     }
