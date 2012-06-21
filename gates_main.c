@@ -94,7 +94,7 @@ int gates_main(int argc, char* argv[]){
     }
     
     // >=1 instance per processor, each gets the whole file, through a bcast
-    else if (INSTANCE_PER_NP > 0) {
+    else if (INSTANCE_PER_NP > 0 || NP_PER_INSTANCE <= 1) {
         printf("Reading!\n");
         if (g_tw_mynode == 0) {
             MPI_File fh;
@@ -113,7 +113,7 @@ int gates_main(int argc, char* argv[]){
         /*     MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD); */
         /* } */
         printf("Bcasts complete!\n");
-        if (g_tw_mynode == 1) printf("Did i get the bcast? %s\n", global_input[0]);
+        if (g_tw_mynode == 1) printf("Did i get the bcast? %s and %s\n", global_input[0], global_input[g_tw_nlp-2]);
     }
     
     // <1 instance per processor, each reads their part
