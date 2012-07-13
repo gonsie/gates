@@ -134,7 +134,8 @@ void gates_init(gate_state *s, tw_lp *lp){
         //s->outputs->size++;
     }
     
-    tw_event *e = tw_event_new(self, 1, lp);
+    //Setup messages have a staggered arrival btwn 1 and 8
+    tw_event *e = tw_event_new(self, 1 + tw_rand_unif(lp->rng)*7, lp);
     message *msg = tw_event_data(e);
     msg->type = SETUP_MSG;
     msg->data.gid = self;
@@ -201,8 +202,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
             for (i = 0; i < s->inputs->size; i++) {
-                double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
-                tw_event *e = tw_event_new(s->inputs->array[i].gid, MESSAGE_PAD + jitter, lp);
+                double jitter = (tw_rand_unif(lp->rng));
+                tw_event *e = tw_event_new(s->inputs->array[i].gid, jitter, lp);
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
                 msg->data.gid = self;
