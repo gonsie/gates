@@ -7,10 +7,10 @@
 #ifndef _gate_h
 #define _gate_h
 
-#define SOURCE_OUTPUTS 3305
-#define SINK_INPUTS 3205
-#define MAX_GATE_INPUTS 4
-#define MAX_GATE_OUTPUTS 5214
+//#define SOURCE_OUTPUTS 3305
+//#define SINK_INPUTS 3205
+//#define MAX_GATE_INPUTS 4
+//#define MAX_GATE_OUTPUTS 5214
 
 //Gate Types
 #define GATE_TYPE_COUNT (11)
