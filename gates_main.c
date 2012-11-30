@@ -25,7 +25,7 @@ extern unsigned int nkp_per_pe;
 
 int gates_main(int argc, char* argv[]){
     
-    int i;
+    int i, j;
         
     tw_opt_add(gates_opts);
     tw_init(&argc, &argv);
