@@ -115,37 +115,26 @@ int gates_main(int argc, char* argv[]){
     
     // <1 instance per processor, each reads their part
     else {
-        //IO
-        printf("%d is attempting to start io\n", g_tw_mynode);
-        MPI_File fh;
-        MPI_Status req;
-        
-        MPI_File_open(MPI_COMM_WORLD, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-        
-        //NOTE: for some reason count is off
-        int line_start, line_end;
-        int current_id;
-        if (INSTANCE_PER_NP > 0 || instnode == 0) {
-            line_start = 0;
-        } else {
-            line_start = (instnode * LP_COUNT) + min(instnode, EXTRA_LP_COUNT);
+        //g_tw_mynode 0 through NP_PER_INSTANCE reads their part and then bcasts
+        if (g_tw_mynode < NP_PER_INSTANCE) {
+            MPI_File fh;
+            MPI_Status req;
+
+            int line_start = (instnode * LP_COUNT) + min(instnode, EXTRA_LP_COUNT);
+            int line_end = line_start + g_tw_nlp;
+
+            MPI_File_open(MPI_COMM_SELF, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+            for (i = line_start, j = 0; i < line_end; i++, j++) {
+                MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[j], LINE_LENGTH-1, MPI_CHAR, &req);
+            }
+            MPI_File_close(&fh);
         }
-        if (NP_PER_INSTANCE > 0) {
-            line_end = line_start + g_tw_nlp;
-        } else {
-            line_end = line_start + LP_COUNT;
+
+        //Simple Bcast, no packing
+        int b_node = g_tw_mynode % NP_PER_INSTANCE;
+        for (i = 0; i < g_tw_nlp; i++) {
+            MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, b_node, MPI_COMM_WORLD);
         }
-        current_id = 0;
-        
-        if (line_end > TOTAL_GATE_COUNT) {
-            printf("ERROR: %d wants to read extra lines\n", g_tw_mynode);
-            line_end = TOTAL_GATE_COUNT;
-        }
-        //printf("node %d starting at line %d and ending at line %d\n", (int) g_tw_mynode, line_start, line_end);
-        for (i = line_start; i < line_end; i++, current_id++) {
-            MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[current_id], LINE_LENGTH-1, MPI_CHAR, &req);
-        }
-        MPI_File_close(&fh);
     }
     
 #if DEBUG_TRACE
