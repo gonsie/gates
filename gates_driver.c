@@ -17,7 +17,7 @@ unsigned int sink_interval = 5;
 
 char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 
-//#define DEBUG_TRACE 1
+// #define DEBUG_TRACE 1
 #if DEBUG_TRACE
 FILE * node_out_file;
 #endif

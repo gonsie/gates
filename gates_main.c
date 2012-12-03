@@ -74,12 +74,12 @@ int gates_main(int argc, char* argv[]){
         tw_lp_settype(i, &gates_lps[0]);
     }
     
-    int fnum = g_tw_mynode % X_COUNT;
-    char filelead[10] = "/data_";
-    char fileend[10] = ".vbench";
-    char filename[100];
-    sprintf(filename, "%s%d%s", filelead, fnum, fileend);
-    //char filename[100] = "/data.vbench";
+    // int fnum = g_tw_mynode % X_COUNT;
+    // char filelead[10] = "/data_";
+    // char fileend[10] = ".vbench";
+    // char filename[100];
+    // sprintf(filename, "%s%d%s", filelead, fnum, fileend);
+    char filename[100] = "/data.vbench";
     char *fullpath = dirname(argv[0]);
     strcat(fullpath, filename);
     
@@ -117,6 +117,9 @@ int gates_main(int argc, char* argv[]){
     else {
         //g_tw_mynode 0 through NP_PER_INSTANCE reads their part and then bcasts
         if (g_tw_mynode < NP_PER_INSTANCE) {
+
+            printf("%d doing file IO.\n", g_tw_mynode);
+
             MPI_File fh;
             MPI_Status req;
 
@@ -131,9 +134,8 @@ int gates_main(int argc, char* argv[]){
         }
 
         //Simple Bcast, no packing
-        int b_node = g_tw_mynode % NP_PER_INSTANCE;
         for (i = 0; i < g_tw_nlp; i++) {
-            MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, b_node, MPI_COMM_WORLD);
+            MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, instnode, MPI_COMM_WORLD);
         }
     }
     
