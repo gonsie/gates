@@ -49,7 +49,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     int count = sscanf(global_input[gate], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
     
     if (count < 2) {
-        printf("%s\n", global_input[gate]);
+        printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
     }
     assert(count >= 2);
     
