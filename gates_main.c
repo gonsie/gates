@@ -109,7 +109,10 @@ int gates_main(int argc, char* argv[]){
         
         //Simple Bcast, no packing
         for (i = 0; i < g_tw_nlp; i++) {
-            MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+            int rc = MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
+            if (rc != MPI_SUCCESS) {
+                printf("BCast faild on %d\n", i);
+            }
         }
     }
     
@@ -135,7 +138,10 @@ int gates_main(int argc, char* argv[]){
 
         //Simple Bcast, no packing
         for (i = 0; i < g_tw_nlp; i++) {
-            MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, instnode, MPI_COMM_WORLD);
+            int rc = MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, instnode, MPI_COMM_WORLD);
+            if (rc != MPI_SUCCESS) {
+                printf("BCast faild on %d\n", i);
+            }
         }
     }
     
