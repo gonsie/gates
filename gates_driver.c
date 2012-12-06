@@ -50,8 +50,9 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     if (count < 2) {
         printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
+        error_count++;
     }
-    assert(count >= 2);
+    // assert(count >= 2);
     
     s->gate_type = type;
     
@@ -198,6 +199,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     if(lp->id == 0 && error_count != 0){
         tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, g_tw_mynode);
     }
+    assert(error_count == 0);
     
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
