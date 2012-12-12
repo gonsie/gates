@@ -136,6 +136,10 @@ int gates_main(int argc, char* argv[]){
             MPI_File_close(&fh);
         }
 
+        if (g_tw_mynode == 0) {
+            printf("Time to bcast!\n");
+        }
+
         //Simple Bcast, no packing
         for (i = 0; i < g_tw_nlp; i++) {
             int rc = MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, instnode, MPI_COMM_WORLD);
