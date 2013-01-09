@@ -93,6 +93,59 @@ int gates_main(int argc, char* argv[]){
         fclose(my_file);
     }
     
+    //MPI_READ on rank 0, bcast around
+    else {
+        if (g_tw_mynode == 0) {
+
+            // alloc space to read the file
+            char **file_contents = (char **) calloc(TOTAL_GATE_COUNT, sizeof(char *));
+            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
+                file_contents[i] = (char *) calloc(LINE_LENGTH+1, sizeof(char));
+            }
+
+            // MPI_READ the file
+            MPI_File fh;
+            MPI_Status req;
+
+            MPI_File_open(MPI_COMM_SELF, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
+                MPI_File_read_at(fh, i * (LINE_LENGTH - 1), file_contents[i], LINE_LENGTH-1, MPI_CHAR, &req);
+            }
+            MPI_File_close(&fh);
+
+            // save my portion of the file
+            for (i = 0; i < g_tw_nlp; i++) {
+                strcpy(global_input[i], file_contents[i]);
+            }
+
+
+            // send contents
+            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
+                int rc = MPI_Send(file_contents[i], LINE_LENGTH-1, MPI_CHAR, i % NP_PER_INSTANCE, 1, MPI_COMM_WORLD);
+                if (rc != MPI_SUCCESS) {
+                    printf("Scatter failed on %d\n", i);
+                    assert(rc == MPI_SUCCESS);
+                }
+            }
+
+
+            // free the file
+            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
+                free(file_contents[i]);
+            }
+            free(file_contents);
+        }
+
+        else {
+            MPI_Status req;
+            for (i = 0; i < g_tw_nlp; i++) {
+                int rc = MPI_Recv(global_input[i], LINE_LENGTH-1, MPI_CHAR, 0, 1, MPI_COMM_WORLD, &req);
+            }
+        }
+    }
+
+
+    /*
     // >=1 instance per processor, each gets the whole file, through a bcast
     else if (INSTANCE_PER_NP > 0 || NP_PER_INSTANCE <= 1) {
         //LP_COUNT == TOTAL_GATES == g_tw_nlp
@@ -147,7 +200,9 @@ int gates_main(int argc, char* argv[]){
         //         printf("BCast faild on %d\n", i);
         //     }
         // }
+        // BCAST MUST BE RECEIVED BY EVERYONE OR IT FREAKS OUT AND BLOCKS
     }
+    */
     
 #if DEBUG_TRACE
     if (g_tw_mynode == 0) {
