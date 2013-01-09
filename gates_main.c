@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <libgen.h>
+#include <assert.h>
 
 #include "ross.h"
 #include "run_config.h"
