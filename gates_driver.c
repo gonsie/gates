@@ -14,6 +14,7 @@
 
 unsigned int source_interval = 1;
 unsigned int sink_interval = 5;
+unsigned int capture = 0;
 
 char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 
