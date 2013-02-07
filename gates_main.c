@@ -95,7 +95,7 @@ int gates_main(int argc, char* argv[]){
         fclose(my_file);
     }
 
-    // >=1 instance per processor, each gets the whole file, through a bcast
+    // >=1 instance per MPI Task, each gets the whole file, through a bcast
     else if (INSTANCE_PER_NP > 0 || NP_PER_INSTANCE <= 1) {
         //LP_COUNT == TOTAL_GATES == g_tw_nlp
         if (g_tw_mynode == 0) {
