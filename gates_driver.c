@@ -42,12 +42,15 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     assert(self < COPY_COUNT * TOTAL_GATE_COUNT);
     
+    int gid = -1;
     int type = -1;
     int output_count = 0;
     unsigned int inputs[4];
     
-    int count = sscanf(global_input[gate], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
+    int count = sscanf(global_input[gate], "%d %d %d %u %u %u %u", &gid, &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
     
+    assert(gid == (self % TOTAL_GATE_COUNT));
+
     if (count < 2) {
         printf("%s\n", global_input[gate]);
     }
