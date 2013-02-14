@@ -43,12 +43,15 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     assert(self < COPY_COUNT * TOTAL_GATE_COUNT);
     
+    int gid = -1;
     int type = -1;
     int output_count = 0;
-    unsigned int inputs[MAX_GATE_INPUTS];
+    unsigned int inputs[4];
     
-    int count = sscanf(global_input[gate], "%d %d %u %u %u %u", &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
+    int count = sscanf(global_input[gate], "%d %d %d %u %u %u %u", &gid, &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
     
+    assert(gid == (self % TOTAL_GATE_COUNT));
+
     if (count < 2) {
         printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
         error_count++;
@@ -78,7 +81,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     if (instance_x(self) == 0) {
         int tmp = 0;
-        unsigned int in2[MAX_GATE_INPUTS];
+        unsigned int in2[4];
         for (i = 0; i < count - 2; i++) {
             if (inputs[i] < TOTAL_GATE_COUNT) {
                 in2[tmp] = inputs[i];
