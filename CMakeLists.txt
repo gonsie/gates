@@ -83,14 +83,26 @@ ADD_EXECUTABLE(gates ${gates_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 TARGET_LINK_LIBRARIES(gates ROSS m)
 
-SET(test_srcs
-    gates_driver.c
-    gates_test.cpp
-    gates_model.h
-    gate.c
-    gate.h
-)
+IF(UNIT_TESTS)
+        SET(TEST_DIR $(ROSS_SOURCE_DIR)/../test)
+        INCLUDE_DIRECTORIES($(TEST_DIR))
 
-#ADD_EXECUTABLE(test_gates ${test_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
+        # Generate test_Runner.c from test file
+        ADD_CUSTOM_COMMAND(
+                OUTPUT $(CMAKE_CURRENT_SOURCE_DIR)/gates_test_Runner.c
+                COMMAND /usr/bin/ruby $(CMAKE_SOURCE_DIR)/test/auto/generate_test_runner.rb $(CMAKE_CURRENT_SOURCE_DIR)/gates_test.c
+                DEPENDS $(CMAKE_CURRENT_SOURCE_DIR)/gates_test.c
+        )
+        ADD_EXECUTABLE(gates-test $(TEST_DIR)/unity.c gates_test.c gates_test_Runner.c $(gates_srcs))
 
-#TARGET_LINK_LIBRARIES(test_gates ROSS m)    
+        TARGET_LINK_LIBRARIES(gates-test ROSS m)
+        GET_TARGET_PROPERTY(test_binary gates-test LOCATION)
+
+        # Make sure you run the test executable after building the binary
+        ADD_CUSTOM_TARGET(tester ALL DEPENDS gates-test)
+        ADD_CUSTOM_COMMAND(
+                TARGET tester
+                COMMAND $(test_binary)
+                DEPENDS gates-test
+        )
+ENDIF(UNIT_TESTS)
