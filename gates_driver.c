@@ -42,6 +42,18 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->calc = FALSE;
     
     assert(self < COPY_COUNT * TOTAL_GATE_COUNT);
+
+    //FUCK THIS NOISE
+    if (self == 0) {
+        for (i = 0; i < g_tw_nlp; i++) {
+            int stride = NP_PER_INSTANCE;
+            int line_gid = -1;
+            int c = sscanf(global_input[i], "%d", &line_gid);
+            printf("%d =?= %d\n", line_gid, i*stride);
+            assert(line_gid == (i*stride));
+        }
+    }
+
     
     int gid = -1;
     int type = -1;
@@ -50,7 +62,10 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     int count = sscanf(global_input[gate], "%d %d %d %u %u %u %u", &gid, &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
     
-    assert(gid == (self % TOTAL_GATE_COUNT));
+    if (gid != (self % TOTAL_GATE_COUNT)) {
+        printf("gid: %d, self: %d\n", gid, self);
+        //        assert(gid == (self % TOTAL_GATE_COUNT));
+    }
 
     if (count < 2) {
         printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
