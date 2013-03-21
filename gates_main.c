@@ -122,99 +122,26 @@ int gates_main(int argc, char* argv[]){
     else {
         if (g_tw_mynode == 0) {
 
-            // alloc space to read the file
-            char **file_contents = (char **) calloc(TOTAL_GATE_COUNT, sizeof(char *));
-            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
-                file_contents[i] = (char *) calloc(LINE_LENGTH+1, sizeof(char));
-            }
+            FILE *f;
+            f = fopen(fullpath, "r");
+            char *block = (char *) malloc(MEM_SIZE);
 
-            // MPI_READ the file
-            MPI_File fh;
-            MPI_Status req;
-
-            MPI_File_open(MPI_COMM_SELF, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
-                MPI_File_read_at(fh, i * (LINE_LENGTH - 1), file_contents[i], LINE_LENGTH-1, MPI_CHAR, &req);
-            }
-            MPI_File_close(&fh);
-
-            /*
-            // save my portion of the file
-            for (i = 0; i < g_tw_nlp; i++) {
-                strcpy(global_input[i], file_contents[i]);
-            }
-            */
-
-            // send contents
-            for (j = 0; j < COPY_COUNT; j++) {
-                for (i = 0; i < TOTAL_GATE_COUNT; i++) {
-                    int dest = (i % NP_PER_INSTANCE) + (j * NP_PER_INSTANCE);
-                    
-                    // special case of sending to myself
-                    if (dest == 0) {
-                        strcpy(global_input[i/NP_PER_INSTANCE], file_contents[i]);
-                    } else {
-                        int rc = MPI_Send(file_contents[i], LINE_LENGTH-1, MPI_CHAR, dest, 1, MPI_COMM_WORLD);
-                        if (rc != MPI_SUCCESS) {
-                            printf("Scatter failed on %d\n", i);
-                            assert(rc == MPI_SUCCESS);
-                        }
-                    }
+            for (i = 0; i < g_tw_nnodes; i++) {
+                fread(block, MEM_SIZE, 1, f);
+                if (g_tw_mynode == i) {
+                    memcpy(global_input, block, MEM_SIZE);
+                } else {
+                    MPI_Send(block, MEM_SIZE, MPI_CHAR, i, 0, MPI_COMM_WORLD);
                 }
             }
 
-            // free the file
-            for (i = 0; i < TOTAL_GATE_COUNT; i++) {
-                free(file_contents[i]);
-            }
-            free(file_contents);
-        }
-
-        else {
+            fclose();
+            free(block);
+        } else {
             MPI_Status req;
-            for (i = 0; i < g_tw_nlp; i++) {
-                int rc = MPI_Recv(global_input[i], LINE_LENGTH-1, MPI_CHAR, 0, 1, MPI_COMM_WORLD, &req);
-            }
+            MPI_Recv(global_input, MEM_SIZE, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &req);
         }
     }
-
-
-    /*
-    
-    // <1 instance per processor, each reads their part
-    else {
-        //g_tw_mynode 0 through NP_PER_INSTANCE reads their part and then bcasts
-        if (g_tw_mynode < NP_PER_INSTANCE) {
-
-            printf("%d doing file IO.\n", g_tw_mynode);
-
-            MPI_File fh;
-            MPI_Status req;
-
-            int line_start = (instnode * LP_COUNT) + min(instnode, EXTRA_LP_COUNT);
-            int line_end = line_start + g_tw_nlp;
-
-            MPI_File_open(MPI_COMM_SELF, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-            for (i = line_start, j = 0; i < line_end; i++, j++) {
-                MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[j], LINE_LENGTH-1, MPI_CHAR, &req);
-            }
-            MPI_File_close(&fh);
-        }
-
-        if (g_tw_mynode == 0) {
-            printf("Time to bcast!\n");
-        }
-
-        //Simple Bcast, no packing
-        // for (i = 0; i < g_tw_nlp; i++) {
-        //     int rc = MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, instnode, MPI_COMM_WORLD);
-        //     if (rc != MPI_SUCCESS) {
-        //         printf("BCast faild on %d\n", i);
-        //     }
-        // }
-        // BCAST MUST BE RECEIVED BY EVERYONE OR IT FREAKS OUT AND BLOCKS
-    }
-    */
     
 #if DEBUG_TRACE
     if (g_tw_mynode == 0) {
