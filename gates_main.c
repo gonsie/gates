@@ -13,6 +13,8 @@
 #include "gates_model.h"
 #include "gate.h"
 
+//#define VERIFY_READ 1
+
 const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),
     TWOPT_UINT("source_interval", source_interval,"time between source sending waves of input"),
@@ -160,6 +162,17 @@ int gates_main(int argc, char* argv[]){
             }
         }
     }
+
+#if VERIFY_READ
+    if (g_tw_mynode == 0) {
+        printf("Line 0: %s\n", global_input[0]);
+        printf("Line 1: %s\n", global_input[1]);
+        printf("Line 2: %s\n", global_input[2]);
+        printf("Line 3: %s\n", global_input[3]);
+        printf("Line 100: %s\n", global_input[100]);
+        printf("Line Last: %s\n", global_input[LP_COUNT-1]);
+    }
+#endif
     
 #if DEBUG_TRACE
     if (g_tw_mynode == 0) {
