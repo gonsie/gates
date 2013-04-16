@@ -49,7 +49,6 @@ void gates_init(gate_state *s, tw_lp *lp){
             int stride = NP_PER_INSTANCE;
             int line_gid = -1;
             int c = sscanf(global_input[i], "%d", &line_gid);
-            printf("%d =?= %d\n", line_gid, i*stride);
             assert(line_gid == (i*stride));
         }
     }
@@ -61,11 +60,6 @@ void gates_init(gate_state *s, tw_lp *lp){
     unsigned int inputs[4];
     
     int count = sscanf(global_input[gate], "%d %d %d %u %u %u %u", &gid, &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
-    
-    if (gid != (self % TOTAL_GATE_COUNT)) {
-        printf("gid: %d, self: %d\n", gid, self);
-        //        assert(gid == (self % TOTAL_GATE_COUNT));
-    }
 
     if (count < 2) {
         printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
