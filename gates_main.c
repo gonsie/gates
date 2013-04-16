@@ -119,27 +119,45 @@ int gates_main(int argc, char* argv[]){
     }
     
     //MPI_READ on rank 0, scatter around
+    // BLOCK_SIZE is the size of the block of text for any single processor
+    // the text has been grouped into blocks for each processor
     else {
+        // size of text block to be read
+        int BLOCK_SIZE = LP_COUNT * LINE_LENGTH;
+        if (g_tw_mynode < EXTRA_LP_COUNT) {
+            BLOCK_SIZE += LINE_LENGTH;
+        }
+        char *block = (char *) malloc(BLOCK_SIZE);
+
+        // all reading happens from task 0
         if (g_tw_mynode == 0) {
 
             FILE *f;
             f = fopen(fullpath, "r");
-            char *block = (char *) malloc(MEM_SIZE);
+            int MEM_SIZE = BLOCK_SIZE;
 
-            for (i = 0; i < g_tw_nnodes; i++) {
+            for (i = 0; i < tw_nnodes(); i++) {
                 fread(block, MEM_SIZE, 1, f);
                 if (g_tw_mynode == i) {
-                    memcpy(global_input, block, MEM_SIZE);
+                    for (j = 0; j < LP_COUNT + (i < EXTRA_LP_COUNT ? 1 : 0); j++) {
+                        strncpy(global_input[j], block + (j * LINE_LENGTH), LINE_LENGTH);
+                    }
                 } else {
                     MPI_Send(block, MEM_SIZE, MPI_CHAR, i, 0, MPI_COMM_WORLD);
                 }
+                if ((i+1) == EXTRA_LP_COUNT) {
+                    MEM_SIZE -= LINE_LENGTH;
+                }
             }
 
-            fclose();
+            fclose(f);
             free(block);
         } else {
             MPI_Status req;
-            MPI_Recv(global_input, MEM_SIZE, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &req);
+            MPI_Recv(block, BLOCK_SIZE, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &req);
+            for (j = 0; j < LP_COUNT + (g_tw_mynode < EXTRA_LP_COUNT ? 1 : 0); j++) {
+                strncpy(global_input[j], block + (j * LINE_LENGTH), LINE_LENGTH);
+            }
         }
     }
     
