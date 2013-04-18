@@ -61,7 +61,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     int count = sscanf(global_input[gate], "%d %d %d %u %u %u %u", &gid, &output_count, &type, &inputs[0], &inputs[1], &inputs[2], &inputs[3]);
 
-    if (count < 2) {
+    if (count < 3) {
         printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
         error_count++;
     }
@@ -88,21 +88,23 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
     */
     
+    int input_count = count - 3;
+
     if (instance_x(self) == 0) {
+        // why do i do this copy thing?
         int tmp = 0;
         unsigned int in2[4];
-        for (i = 0; i < count - 2; i++) {
+        for (i = 0; i < input_count; i++) {
             if (inputs[i] < TOTAL_GATE_COUNT) {
                 in2[tmp] = inputs[i];
                 tmp++;
             }
         }
-        count = tmp + 2;
         for (i = 0; i < tmp; i++) {
             inputs[i] = in2[i] + instance_0(self);
         }
     } else {
-        for (i = 0; i < count - 2; i++) {
+        for (i = 0; i < input_count; i++) {
             if (inputs[i] >= TOTAL_GATE_COUNT) {
                 int gate_id = inputs[i] - TOTAL_GATE_COUNT;
                 inputs[i] = (instance_0(self) - TOTAL_GATE_COUNT) + gate_id;
@@ -112,14 +114,14 @@ void gates_init(gate_state *s, tw_lp *lp){
         }
     }
     
-    for (i = 0; i < count - 2; i ++) {
+    for (i = 0; i < input_count; i ++) {
         assert(inputs[i] >= 0);
         assert(inputs[i] < COPY_COUNT * TOTAL_GATE_COUNT);
     }
     
-    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((count - 2) * sizeof(pair)), 1);
-    s->inputs->alloc = count - 2;
-    s->inputs->size = count - 2;
+    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((input_count) * sizeof(pair)), 1);
+    s->inputs->alloc = input_count;
+    s->inputs->size = input_count;
     
     switch (s->inputs->size) {
         case 4:
