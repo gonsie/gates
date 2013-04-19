@@ -91,7 +91,6 @@ void gates_init(gate_state *s, tw_lp *lp){
     int input_count = count - 3;
 
     if (instance_x(self) == 0) {
-        // why do i do this copy thing?
         int tmp = 0;
         unsigned int in2[4];
         for (i = 0; i < input_count; i++) {
@@ -100,6 +99,7 @@ void gates_init(gate_state *s, tw_lp *lp){
                 tmp++;
             }
         }
+        input_count = tmp;
         for (i = 0; i < tmp; i++) {
             inputs[i] = in2[i] + instance_0(self);
         }
