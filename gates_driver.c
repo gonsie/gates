@@ -15,7 +15,6 @@
 //exten'd variables
 unsigned int source_interval = 1;
 unsigned int sink_interval = 5;
-unsigned int wave_view = 0;
 
 char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 int wave_gids[WAVE_COUNT];

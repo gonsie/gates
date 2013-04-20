@@ -19,7 +19,6 @@ const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),
     TWOPT_UINT("source_interval", source_interval,"time between source sending waves of input"),
     TWOPT_UINT("sink_interval", sink_interval, "time between reporting of sink statistics"),
-    TWOPT_UINT("wave_view", wave_view, "flag for waveform capture"),
     TWOPT_END(),
 };
 
@@ -39,7 +38,7 @@ int gates_main(int argc, char* argv[]){
         return 1;
     }
     
-    if (wave_view && g_tw_synchronization_protocol > 2) {
+    if (WAVE_COUNT != 0 && g_tw_synchronization_protocol > 2) {
         printf("ERROR: Waveform viewing is not supported for non-conservative protocols.\n");
         return 1;
     }
@@ -49,7 +48,7 @@ int gates_main(int argc, char* argv[]){
         printf("X_COUNT = %d * Y_COUNT = %d => COPY_COUNT = %d\n\t", X_COUNT, Y_COUNT, COPY_COUNT);
         printf("NP_PER_INSTANCE = %d --or-- INSTANCE_PER_NP = %d\n\t", NP_PER_INSTANCE, INSTANCE_PER_NP);
         printf("TOTAL_GATE_COUNT = %d, LP_COUNT = %d\n", TOTAL_GATE_COUNT, LP_COUNT);
-        if (wave_view) {
+        if (WAVE_COUNT) {
             printf("WAVE_VIEW Enabled: %d\n", wave_view);
         }
     }
