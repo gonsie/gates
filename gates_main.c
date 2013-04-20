@@ -39,6 +39,11 @@ int gates_main(int argc, char* argv[]){
         return 1;
     }
     
+    if (wave_view && g_tw_synchronization_protocol > 2) {
+        printf("ERROR: Waveform viewing is not supported for non-conservative protocols.\n");
+        return 1;
+    }
+    
     if (g_tw_mynode == 0) {
         printf("Gates Configuration:\n\t");
         printf("X_COUNT = %d * Y_COUNT = %d => COPY_COUNT = %d\n\t", X_COUNT, Y_COUNT, COPY_COUNT);
