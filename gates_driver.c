@@ -12,9 +12,10 @@
 #include "gates_model.h"
 #include "gate.h"
 
+//exten'd variables
 unsigned int source_interval = 1;
 unsigned int sink_interval = 5;
-unsigned int capture = 0;
+unsigned int wave_view = 0;
 
 char global_input[LP_COUNT+1][LINE_LENGTH + 1];
 

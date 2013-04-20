@@ -69,7 +69,7 @@ typedef struct {
 //Command Line Arguments
 extern unsigned int source_interval;
 extern unsigned int sink_interval;
-extern unsigned int capture;
+extern unsigned int wave_view;
 
 //Global vars accessed by main and driver
 extern tw_lptype gates_lps[];

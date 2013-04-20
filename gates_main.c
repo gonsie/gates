@@ -19,7 +19,7 @@ const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),
     TWOPT_UINT("source_interval", source_interval,"time between source sending waves of input"),
     TWOPT_UINT("sink_interval", sink_interval, "time between reporting of sink statistics"),
-    TWOPT_UINT("capture", capture, "gid for waveform capture"),
+    TWOPT_UINT("wave_view", wave_view, "flag for waveform capture"),
     TWOPT_END(),
 };
 
