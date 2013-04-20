@@ -49,6 +49,9 @@ int gates_main(int argc, char* argv[]){
         printf("X_COUNT = %d * Y_COUNT = %d => COPY_COUNT = %d\n\t", X_COUNT, Y_COUNT, COPY_COUNT);
         printf("NP_PER_INSTANCE = %d --or-- INSTANCE_PER_NP = %d\n\t", NP_PER_INSTANCE, INSTANCE_PER_NP);
         printf("TOTAL_GATE_COUNT = %d, LP_COUNT = %d\n", TOTAL_GATE_COUNT, LP_COUNT);
+        if (wave_view) {
+            printf("WAVE_VIEW Enabled: %d\n", wave_view);
+        }
     }
     
     g_tw_mapping = CUSTOM;

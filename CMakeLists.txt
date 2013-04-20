@@ -63,9 +63,13 @@ MATH(EXPR _ll  "${_linelen} + 1")
 #MESSAGE("configure_file ${_ngates} ${_ll} ${_np} ${_x} ${_y} ${_xy} ${_inp} ${_npi} ${_nlp} ${_xlp}")
 
 # if specified, copy the wave data file to build directory
-IF(wave)
+IF(not wave)
+    SET(_wc 0 CACHE INTERNAL "no waves" FORCE)
+ELSE(NOT wave)
+    SET(_wc ${wave} CACHE INTERNAL "wave viewer" FORCE)
     CONFIGURE_FILE($CMAKE_CURRENT_SOURCE_DIR/wave_data/wave_form${wave}.txt ${CMAKE_CURRENT_BINARY_DIR}/wave.txt COPYONLY)
-ENDIF(wave)
+ENDIF(NOT wave)
+UNSET(wave CACHE)
 
 # write the header with variables
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)

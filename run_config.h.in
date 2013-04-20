@@ -22,4 +22,6 @@
 #define LP_COUNT @_nlp@
 #define EXTRA_LP_COUNT @_xlp@
 
+#define WAVE_COUNT @_wc@
+
 #endif

@@ -74,6 +74,7 @@ extern unsigned int wave_view;
 //Global vars accessed by main and driver
 extern tw_lptype gates_lps[];
 extern char global_input[][LINE_LENGTH+1];
+extern int wave_gids[];
 
 //Duplcation mapping functions
 inline int instance_node(unsigned int);
