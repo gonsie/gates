@@ -62,6 +62,11 @@ MATH(EXPR _ll  "${_linelen} + 1")
 
 #MESSAGE("configure_file ${_ngates} ${_ll} ${_np} ${_x} ${_y} ${_xy} ${_inp} ${_npi} ${_nlp} ${_xlp}")
 
+# if specified, copy the wave data file to build directory
+IF(wave)
+    CONFIGURE_FILE($CMAKE_CURRENT_SOURCE_DIR/wave_data/wave_form${wave}.txt ${CMAKE_CURRENT_BINARY_DIR}/wave.txt COPYONLY)
+ENDIF(wave)
+
 # write the header with variables
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
