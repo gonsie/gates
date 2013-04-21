@@ -148,8 +148,8 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->outputs->size = 0;
     
     if (s->gate_type == OUTPUT_GATE) {
-        //s->outputs->array[0].gid = SINK_ID;
-        //s->outputs->size++;
+        s->outputs->array[0].gid = SINK_ID;
+        s->outputs->size++;
     }
     
     //Setup messages have a staggered arrival btwn 1 and 8
@@ -339,11 +339,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
-        if (s->outputs->size == 0){
-            return;
-        }
         function_array[s->gate_type](s->inputs, s->outputs);
         s->calc = FALSE;
+        
         //send event to outputs
         for(i = 0; i < s->outputs->size; i++){
             double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
@@ -354,10 +352,11 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             msg->data.value = s->outputs->array[i].value;
             tw_event_send(e);
 
-            if (s->wave_print) {
-                wave_print(s->outputs->array[0].value, s->wave_id);
-            }
             //printf("SEND\tgid: %u\tgtype: %d\tsend: %u\tto: %u\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
+        }
+        if (s->wave_print) {
+            // assume OUTPUT_gate type
+            wave_print(s->inputs->array[0].value, s->wave_id);
         }
     } else if (in_msg->type == WAVE_MSG) {
         if (self == 0) {
