@@ -90,14 +90,14 @@ int gates_main(int argc, char* argv[]){
     // char fileend[10] = ".vbench";
     // char filename[100];
     // sprintf(filename, "%s%d%s", filelead, fnum, fileend);
-    char filename[100] = "/data.vbench";
-    char *fullpath = dirname(argv[0]);
-    strcat(fullpath, filename);
+    char dataname[100] = "/data.vbench";
+    char *datapath = dirname(argv[0]);
+    strcat(datapath, dataname);
     
     //single processor, single file
     if (g_tw_synchronization_protocol == 1) {
         //sequential
-        FILE *my_file = fopen(fullpath, "r");
+        FILE *my_file = fopen(datapath, "r");
         for (i = 0; i < LP_COUNT; i++) {
             fgets(global_input[i], LINE_LENGTH, my_file);
         }
@@ -111,7 +111,7 @@ int gates_main(int argc, char* argv[]){
             MPI_File fh;
             MPI_Status req;
             
-            MPI_File_open(MPI_COMM_SELF, fullpath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+            MPI_File_open(MPI_COMM_SELF, datapath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
             for (i = 0; i < g_tw_nlp; i++) {
                 MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[i], LINE_LENGTH-1, MPI_CHAR, &req);
             }
@@ -142,7 +142,7 @@ int gates_main(int argc, char* argv[]){
         if (g_tw_mynode == 0) {
 
             FILE *f;
-            f = fopen(fullpath, "r");
+            f = fopen(datapath, "r");
             int MEM_SIZE = BLOCK_SIZE;
 
             for (i = 0; i < tw_nnodes(); i++) {
@@ -180,6 +180,37 @@ int gates_main(int argc, char* argv[]){
         printf("Line Last: %s\n", global_input[LP_COUNT-1]);
     }
 #endif
+    
+    // read the wave file gids
+    if (WAVE_COUNT != 0) {
+        char wavename[100] = "/wave.txt";
+        char *wavepath = dirname(argv[0]);
+        strcat(wavepath, wavename);
+        
+        if (g_tw_mynode == 0) {
+            FILE *f;
+            f = fopen(wavepath, "r");
+            
+            fseek(f, 0, SEEK_END);
+            int w_size = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            
+            char *wave_file = (char *)malloc(w_size);
+            fread(wave_file, w_size, 1, f);
+            fclose(f);
+            
+            char * wid;
+            char * w_ptr = wave_file;
+            i = 0;
+            while ((wid = strsep(&w_ptr, "\n")) != NULL) {
+                wave_gids[i] = atoi(wid);
+                i++;
+            }
+            
+            free(wave_file);
+        } 
+    }
+    
     
 #if DEBUG_TRACE
     if (g_tw_mynode == 0) {
