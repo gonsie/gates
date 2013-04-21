@@ -65,7 +65,8 @@ typedef struct {
     int received_events;
     int calc;
 
-    BOOL wave_print = FALSE;
+    BOOL wave_print;
+    char wave_id;
     
 } gate_state;
 

@@ -49,7 +49,7 @@ int gates_main(int argc, char* argv[]){
         printf("NP_PER_INSTANCE = %d --or-- INSTANCE_PER_NP = %d\n\t", NP_PER_INSTANCE, INSTANCE_PER_NP);
         printf("TOTAL_GATE_COUNT = %d, LP_COUNT = %d\n", TOTAL_GATE_COUNT, LP_COUNT);
         if (WAVE_COUNT) {
-            printf("WAVE_VIEW Enabled: %d\n", wave_view);
+            printf("\tWAVE_VIEW Enabled: %d\n", WAVE_COUNT);
         }
     }
     

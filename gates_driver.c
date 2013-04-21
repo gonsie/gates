@@ -41,6 +41,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     int i;
     s->received_events = 0;
     s->calc = FALSE;
+    s->wave_print = FALSE;
     
     assert(self < COPY_COUNT * TOTAL_GATE_COUNT);
 
