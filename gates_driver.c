@@ -177,6 +177,14 @@ void gates_init(gate_state *s, tw_lp *lp){
         msg2->data.value = 0;
         tw_event_send(e2);
     }
+
+    if (WAVE_COUNT != 0 && self == 0) {
+        // LP 0 is specially designated to do timestamp printing
+        tw_event *ts = tw_event_new(self, 10, lp);
+        message *tsm = tw_event_data(ts);
+        tsm->type = WAVE_MSG;
+        tw_event_send(ts);
+    }
     
     //printf("%u is all done! my type is %d\n", self, s->gate_type);
     
@@ -192,7 +200,21 @@ tw_stime clock_round(tw_stime now){
     }
 }
 
+void wave_print(int value, char id) {
+    char outname[100] = "/waveout.vcd";
+    char *outpath = dirname(argv[0]);
+    strcat(outpath, outname);
 
+    f = fopen(outpath, "a");
+    if (id) {
+        // value dump
+        fprintf(f, "%d%c\n", value, id);
+    } else {
+        // timestamp
+        fprintf(f, "#%d\n", value);
+    }
+    fclose(f);
+}
 
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
@@ -230,11 +252,11 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 tw_event_send(e);
             }
 
-            // LP 0 is specially designated to inform of wave printing (gid array filled on node 0)
             if (self == 0) {
+                // LP 0 is specially designated to inform of wave printing (gid array filled on node 0)
                 for (i = 0; i < WAVE_COUNT; i++) {
                     double jitter = (tw_rand_unif(lp->rng));
-                    tw_event *w = tw_event_new(wave_gids[i], 3 + jitter, lp);
+                    tw_event *w = tw_event_new(wave_gids[i], 1 + jitter, lp);
                     message *wm = tw_event_data(w);
                     wm->type = WAVE_MSG;
                     // wave id (ascii value)
@@ -333,11 +355,20 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             msg->data.gid = self;
             msg->data.value = s->outputs->array[i].value;
             tw_event_send(e);
+
+            if (s->wave_print) {
+                wave_print(s->outputs->array[0].value, s->wave_id);
+            }
             //printf("SEND\tgid: %u\tgtype: %d\tsend: %u\tto: %u\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
         }
     } else if (in_msg->type == WAVE_MSG) {
         if (self == 0) {
             // LP 0 does the time stamp printing
+            wave_print((int) tw_now(lp), NULL);
+            tw_event *ts = tw_event_new(self, 1, lp);
+            message *tsm = tw_event_data(ts);
+            tsm->type = WAVE_MSG;
+            tw_event_send(ts);
         } else {
             // turn on wave printing for this LP
             SWAP(&(s->wave_print), &(in_msg->data.value));
