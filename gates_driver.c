@@ -204,9 +204,11 @@ void wave_print(int value, char id) {
     FILE * f = fopen("waveout.vcd", "a");
     if (id) {
         // value dump
+        printf("%d%c\n", value, id);
         fprintf(f, "%d%c\n", value, id);
     } else {
         // timestamp
+        printf("#%d\n", value);
         fprintf(f, "#%d\n", value);
     }
     fclose(f);
