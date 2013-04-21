@@ -336,7 +336,13 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             //printf("SEND\tgid: %u\tgtype: %d\tsend: %u\tto: %u\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
         }
     } else if (in_msg->type == WAVE_MSG) {
-        SWAP(&(s->wave_print), &(in_msg->data.value));
+        if (self == 0) {
+            // LP 0 does the time stamp printing
+        } else {
+            // turn on wave printing for this LP
+            SWAP(&(s->wave_print), &(in_msg->data.value));
+            s->wave_id = (char) in_msg->data.gid;
+        }
     } else {
         printf("ERROR: could not process message type %d on lp %u\n", in_msg->type, self);
     }
@@ -398,8 +404,9 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == WAVE_MSG) {
-        SWAP(&(s->wave_print), &(in_msg->data.value));
-        s->wave_id = (char) in_msg->data.gid;
+        if (self != 0){
+            SWAP(&(s->wave_print), &(in_msg->data.value));
+        }
     } else {
         printf("ERROR: could not process reverse message type %d on lp %u\n", in_msg->type, self);
     }
