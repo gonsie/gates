@@ -201,11 +201,7 @@ tw_stime clock_round(tw_stime now){
 }
 
 void wave_print(int value, char id) {
-    char outname[100] = "/waveout.vcd";
-    char *outpath = dirname(argv[0]);
-    strcat(outpath, outname);
-
-    f = fopen(outpath, "a");
+    FILE * f = fopen("waveout.vcd", "a");
     if (id) {
         // value dump
         fprintf(f, "%d%c\n", value, id);
