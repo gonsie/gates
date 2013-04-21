@@ -228,6 +228,19 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 msg->data.value = self;
                 tw_event_send(e);
             }
+
+            // LP 0 is specially designated to inform of wave printing (gid array filled on node 0)
+            if (self == 0) {
+                for (i = 0; i < WAVE_COUNT; i++) {
+                    double jitter = (tw_rand_unif(lp->rng));
+                    tw_event *w = tw_event_new(wave_gids[i], 3 + jitter, lp);
+                    message *wm = tw_event_data(w);
+                    wm->type = WAVE_MSG;
+                    wm->data.gid = wave_gids[i];
+                    wm->data.value = TRUE;
+                    tw_event_send(w);
+                }
+            }
         } else {
             if (s->outputs->alloc <= s->outputs->size) {
                 printf("Node %u wants to add %u to outputs, but alloc is %d and size is %d:: ", self, in_msg->data.value, s->outputs->alloc, s->outputs->size);
@@ -320,6 +333,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
             //printf("SEND\tgid: %u\tgtype: %d\tsend: %u\tto: %u\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
         }
+    } else if (in_msg->type == WAVE_MSG) {
+        SWAP(&(s->wave_print), &(in_msg->data.value));
     } else {
         printf("ERROR: could not process message type %d on lp %u\n", in_msg->type, self);
     }
@@ -339,6 +354,13 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             for (i = 0; i < s->inputs->size; i++) {
                 tw_rand_reverse_unif(lp->rng);
             }
+
+            if (self == 0) {
+                for (i = 0; i < WAVE_COUNT; i++) {
+                    tw_rand_reverse_unif(lp->rng);
+                }
+            }
+
         } else {
             assert(s->outputs->size > 0);
             s->outputs->size--;
@@ -373,6 +395,8 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         for(i = 0; i < s->outputs->size; i++){
             tw_rand_reverse_unif(lp->rng);
         }
+    } else if (in_msg->type == WAVE_MSG) {
+        SWAP(&(s->wave_print), &(in_msg->data.value));
     } else {
         printf("ERROR: could not process reverse message type %d on lp %u\n", in_msg->type, self);
     }

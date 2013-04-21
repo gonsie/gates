@@ -27,6 +27,7 @@ typedef int LOGIC;
 #define LOGIC_CALC_MSG (3)
 #define SINK_MSG (4)
 #define CLOCK_MSG (5)
+#define WAVE_MSG (6)
 
 //sim settings
 #define MESSAGE_PAD (0.4)
@@ -63,6 +64,8 @@ typedef struct {
     
     int received_events;
     int calc;
+
+    BOOL wave_print = FALSE;
     
 } gate_state;
 
