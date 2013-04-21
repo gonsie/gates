@@ -26,6 +26,7 @@ FILE * node_out_file;
 
 // each PE has its own unique file pointer
 FILE * wave_out_file;
+double latest_ts = 0.0;
 
 int global_swap_count = 0;
 int error_count = 0;
@@ -196,7 +197,11 @@ tw_stime clock_round(tw_stime now){
 }
 
 void wave_print(double timestamp, int value, char id) {
-    fprintf(wave_out_file, "#%f\n%d%c\n", timestamp, value, id);
+    if (timestamp > latest_ts) {
+        fprintf(wave_out_file, "#%f\n", timestamp);
+        latest_ts = timestamp;
+    }
+    fprintf(wave_out_file, "%d%c\n", value, id);
 }
 
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
@@ -324,7 +329,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
-        function_array[s->gate_type](s->inputs, s->outputs);
+        int changed = function_array[s->gate_type](s->inputs, s->outputs);
         s->calc = FALSE;
         
         //send event to outputs
@@ -339,7 +344,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 
             //printf("SEND\tgid: %u\tgtype: %d\tsend: %u\tto: %u\n", self, s->gate_type, s->outputs->array[i].value, s->outputs->array[i].gid);
         }
-        if (s->wave_print) {
+        if (s->wave_print && changed) {
             // assume OUTPUT_gate type
             wave_print(tw_now(lp), s->inputs->array[0].value, s->wave_id);
         }
