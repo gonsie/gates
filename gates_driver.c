@@ -148,8 +148,8 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->outputs->size = 0;
     
     if (s->gate_type == OUTPUT_GATE) {
-        s->outputs->array[0].gid = SINK_ID;
-        s->outputs->size++;
+        //s->outputs->array[0].gid = SINK_ID;
+        //s->outputs->size++;
     }
     
     //Setup messages have a staggered arrival btwn 1 and 8
