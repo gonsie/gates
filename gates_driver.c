@@ -237,7 +237,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                     tw_event *w = tw_event_new(wave_gids[i], 3 + jitter, lp);
                     message *wm = tw_event_data(w);
                     wm->type = WAVE_MSG;
-                    wm->data.gid = wave_gids[i];
+                    // wave id (ascii value)
+                    wm->data.gid = 33 + i;
                     wm->data.value = TRUE;
                     tw_event_send(w);
                 }
@@ -398,6 +399,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
     } else if (in_msg->type == WAVE_MSG) {
         SWAP(&(s->wave_print), &(in_msg->data.value));
+        s->wave_id = (char) in_msg->data.gid;
     } else {
         printf("ERROR: could not process reverse message type %d on lp %u\n", in_msg->type, self);
     }

@@ -182,33 +182,47 @@ int gates_main(int argc, char* argv[]){
 #endif
     
     // read the wave file gids
-    if (WAVE_COUNT != 0) {
+    if (WAVE_COUNT != 0 && g_tw_mynode == 0) {
         char wavename[100] = "/wave.txt";
         char *wavepath = dirname(argv[0]);
         strcat(wavepath, wavename);
+    
+        FILE *f;
+        f = fopen(wavepath, "r");
         
-        if (g_tw_mynode == 0) {
-            FILE *f;
-            f = fopen(wavepath, "r");
-            
-            fseek(f, 0, SEEK_END);
-            int w_size = ftell(f);
-            fseek(f, 0, SEEK_SET);
-            
-            char *wave_file = (char *)malloc(w_size);
-            fread(wave_file, w_size, 1, f);
-            fclose(f);
-            
-            char * wid;
-            char * w_ptr = wave_file;
-            i = 0;
-            while ((wid = strsep(&w_ptr, "\n")) != NULL) {
-                wave_gids[i] = atoi(wid);
-                i++;
-            }
-            
-            free(wave_file);
-        } 
+        fseek(f, 0, SEEK_END);
+        int w_size = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        
+        char *wave_file = (char *)malloc(w_size);
+        fread(wave_file, w_size, 1, f);
+        fclose(f);
+        
+        char * wid;
+        char * w_ptr = wave_file;
+        i = 0;
+        while ((wid = strsep(&w_ptr, "\n")) != NULL) {
+            wave_gids[i] = atoi(wid);
+            i++;
+        }
+        
+        free(wave_file);
+
+        assert(i == WAVE_COUNT);
+
+        // add output vcd file
+        char outname[100] = "/waveout.vcd";
+        char *outpath = dirname(argv[0]);
+        strcat(outpath, outname);
+
+        f = fopen(outpath, "a");
+
+        for (i = 0; i < WAVE_COUNT; i++) {
+            fprintf(f, "$var wire 1 %c %d $end\n", (char)(i+33), wave_gids[i]);
+        }
+        fprintf(f, "$upscope $end\n$enddefinitions $end\n");
+
+        fclose(f);
     }
     
     
