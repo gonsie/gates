@@ -24,6 +24,9 @@ int wave_gids[WAVE_COUNT];
 FILE * node_out_file;
 #endif
 
+// each PE has its own unique file pointer
+FILE * wave_out_file;
+
 int global_swap_count = 0;
 int error_count = 0;
 
@@ -177,14 +180,6 @@ void gates_init(gate_state *s, tw_lp *lp){
         msg2->data.value = 0;
         tw_event_send(e2);
     }
-
-    if (WAVE_COUNT != 0 && self == 0) {
-        // LP 0 is specially designated to do timestamp printing
-        tw_event *ts = tw_event_new(self, 10, lp);
-        message *tsm = tw_event_data(ts);
-        tsm->type = WAVE_MSG;
-        tw_event_send(ts);
-    }
     
     //printf("%u is all done! my type is %d\n", self, s->gate_type);
     
@@ -200,18 +195,8 @@ tw_stime clock_round(tw_stime now){
     }
 }
 
-void wave_print(int value, char id) {
-    FILE * f = fopen("waveout.vcd", "a");
-    if (id) {
-        // value dump
-        printf("%d%c\n", value, id);
-        fprintf(f, "%d%c\n", value, id);
-    } else {
-        // timestamp
-        printf("#%d\n", value);
-        fprintf(f, "#%d\n", value);
-    }
-    fclose(f);
+void wave_print(double timestamp, int value, char id) {
+    fprintf(wave_out_file, "#%f\n%d%c\n", timestamp, value, id);
 }
 
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
@@ -356,21 +341,12 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
         if (s->wave_print) {
             // assume OUTPUT_gate type
-            wave_print(s->inputs->array[0].value, s->wave_id);
+            wave_print(tw_now(lp), s->inputs->array[0].value, s->wave_id);
         }
     } else if (in_msg->type == WAVE_MSG) {
-        if (self == 0) {
-            // LP 0 does the time stamp printing
-            wave_print((int) tw_now(lp), NULL);
-            tw_event *ts = tw_event_new(self, 1, lp);
-            message *tsm = tw_event_data(ts);
-            tsm->type = WAVE_MSG;
-            tw_event_send(ts);
-        } else {
-            // turn on wave printing for this LP
-            SWAP(&(s->wave_print), &(in_msg->data.value));
-            s->wave_id = (char) in_msg->data.gid;
-        }
+        // turn on wave printing for this LP
+        SWAP(&(s->wave_print), &(in_msg->data.value));
+        s->wave_id = (char) in_msg->data.gid;
     } else {
         printf("ERROR: could not process message type %d on lp %u\n", in_msg->type, self);
     }

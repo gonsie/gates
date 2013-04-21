@@ -224,6 +224,14 @@ int gates_main(int argc, char* argv[]){
 
         fclose(f);
     }
+
+    if (WAVE_COUNT != 0) {
+        char outname[100];
+        sprintf(outname, "/waveout.%d.vcd", g_tw_mynode);
+        char *outpath = dirname(argv[0]);
+        strcat(outpath, outname);
+        wave_out_file = fopen(outpath, "a");
+    }
     
     
 #if DEBUG_TRACE
