@@ -33,7 +33,7 @@ int OUTPUT_func(vector input, vector output){
     //size is expected to be 1
     int i;
     for (i = 0; i < input->size; i++) {
-        //output->array[i].value = input->array[i].value;
+        output->array[i].value = input->array[i].value;
     }
     
     return change_flag;
