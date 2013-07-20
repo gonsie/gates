@@ -49,9 +49,12 @@ typedef struct {
     pair data;
 } message;
 
-typedef int (*gate_func)(vector input, vector output);
+typedef int (*gate_func)(vector input, vector internal, vector output);
 
 extern gate_func function_array[];
+extern int gate_input_size[];
+extern int gate_internal_size[];
+extern int gate_output_size[];
 
 typedef struct {
     
@@ -60,6 +63,7 @@ typedef struct {
     
     //variables for linking gates
     vector inputs;
+    vector internal;
     vector outputs;
     
     int received_events;
