@@ -94,7 +94,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
     */
     
-    int input_count = count - 2;
+    int input_count = (count - 2) / 2;
 
     // synthetic circuit mappings
     if (instance_x(self) == 0) {
@@ -128,44 +128,37 @@ void gates_init(gate_state *s, tw_lp *lp){
         assert(inputs[i][0] < COPY_COUNT * TOTAL_GATE_COUNT);
     }
     
+    int input_size = gate_input_size[type];
+    assert(input_count <= input_size);
     s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((input_count) * sizeof(pair)), 1);
     s->inputs->alloc = input_count;
     s->inputs->size = input_count;
     
-    // TODO rewrite this entire thing
-    switch (s->inputs->size) {
-        case 4:
-            s->inputs->array[3].gid = inputs[3];
-        case 3:
-            s->inputs->array[2].gid = inputs[2];
-        case 2:
-            s->inputs->array[1].gid = inputs[1];
-        case 1:
-            s->inputs->array[0].gid = inputs[0];
-        default:
-            break;
+    for (i = 0; i < input_count; i+=2) {
+        s->inputs->array[i].gid = inputs[i][0];
+        s->inputs->array[i].value = inputs[i][1];
     }
     
     // Set up internal vector
-    int internal_count = gate_internal_size[type];
-    s->internal = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(vector) + internal_count * sizeof(pair), 1);
-    s->internal->alloc = internal_count;
+    int internal_size = gate_internal_size[type];
+    s->internal = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(vector) + internal_size * sizeof(pair), 1);
+    s->internal->alloc = internal_size;
     s->internal->size = 0;
 
     // Set up output vector
-    int output_count = gate_output_size[type];
+    int output_size = gate_output_size[type];
 
-    // special case
+    // special cases
     if (type == fanout_TYPE) {
-        output_count = inputs[count-1];
+        output_size = inputs[count-1];
     }
     
     if (COPY_COUNT > 1) {
-        output_count++;
+        output_size++;
     }
     
-    s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_count * sizeof(pair), 1);
-    s->outputs->alloc = output_count;
+    s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_size * sizeof(pair), 1);
+    s->outputs->alloc = output_size;
     s->outputs->size = 0;
     
     if (s->gate_type == OUTPUT_GATE) {
