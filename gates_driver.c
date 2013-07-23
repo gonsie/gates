@@ -246,7 +246,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
                 msg->data.gid = self;
-                msg->data.value = self;
+                msg->data.value = s->inputs->array[i].value;
                 tw_event_send(e);
             }
 
@@ -273,9 +273,12 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 assert(s->outputs->alloc > s->outputs->size);
             }
             assert(in_msg->data.value >= 0);
-            assert(in_msg->data.value < COPY_COUNT * TOTAL_GATE_COUNT);
-            SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));
+            assert(in_msg->data.value < s->outputs->alloc);
+            assert(in_msg->data.gid >= 0);
+            assert(in_msg->data.gid < COPY_COUNT * TOTAL_GATE_COUNT);
+            SWAP(&(s->outputs->array[in_msg->data.value].gid), &(in_msg->data.gid));
             s->outputs->size++;
+            // !! NOTE: s->outputs is non-contiguously filled !!
         }
     } else if (in_msg->type == SOURCE_MSG) {
         //s->gate_function(s->inputs, s->outputs);
@@ -319,6 +322,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         tw_event_send(c);
         
     } else if (in_msg->type == LOGIC_CARY_MSG) {
+        assert(s->outputs->size == s->outputs->alloc);
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
                 SWAP(&(s->inputs->array[i].value), &(in_msg->data.value));
