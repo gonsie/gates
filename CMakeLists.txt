@@ -78,8 +78,9 @@ SET(gates_srcs
     gates_main.c
     gates_driver.c 
     gates_model.h
-    gate.c
-    gate.h
+    lsi_10k_types.h
+    lsi_10k_functions.c
+    lsi_10k_lookups.c
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
