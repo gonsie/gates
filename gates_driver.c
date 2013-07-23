@@ -10,7 +10,7 @@
 #include "ross.h"
 #include "run_config.h"
 #include "gates_model.h"
-#include "gate.h"
+#include "lib_10k_types.h"
 
 //exten'd variables
 unsigned int source_interval = 1;
@@ -71,7 +71,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         error_count++;
     }
     // assert(count >= 2);
-    assert(gid == self)
+    assert(gid == self);
 
     s->gate_type = type;
     
@@ -343,7 +343,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_event_send(e);
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
-        int changed = function_array[s->gate_type](s->inputs, s->outputs);
+        int changed = function_array[s->gate_type](s->inputs, s->internals, s->outputs);
         s->calc = FALSE;
         
         //send event to outputs
