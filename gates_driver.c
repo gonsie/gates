@@ -10,7 +10,7 @@
 #include "ross.h"
 #include "run_config.h"
 #include "gates_model.h"
-#include "lib_10k_types.h"
+#include "lsi_10k_types.h"
 
 //exten'd variables
 unsigned int source_interval = 1;
@@ -141,16 +141,16 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     // Set up internal vector
     int internal_size = gate_internal_size[type];
-    s->internal = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(vector) + internal_size * sizeof(pair), 1);
-    s->internal->alloc = internal_size;
-    s->internal->size = 0;
+    s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(vector) + internal_size * sizeof(pair), 1);
+    s->internals->alloc = internal_size;
+    s->internals->size = 0;
 
     // Set up output vector
     int output_size = gate_output_size[type];
 
     // special cases
     if (type == fanout_TYPE) {
-        output_size = inputs[count-1];
+        output_size = inputs[1][0];
     }
     
     if (COPY_COUNT > 1) {
@@ -161,7 +161,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->outputs->alloc = output_size;
     s->outputs->size = 0;
     
-    if (s->gate_type == OUTPUT_GATE) {
+    if (s->gate_type == output_gate_TYPE) {
         //s->outputs->array[0].gid = SINK_ID;
         //s->outputs->size++;
     }
@@ -174,7 +174,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     msg->data.value = self;
     tw_event_send(e);
     
-    if (s->gate_type == INPUT_GATE) {
+    if (s->gate_type == input_gate_TYPE) {
         tw_event *e2 = tw_event_new(self, 10.5, lp);
         message *msg2 = tw_event_data(e2);
         msg2->type = SOURCE_MSG;
@@ -183,14 +183,14 @@ void gates_init(gate_state *s, tw_lp *lp){
         tw_event_send(e2);
     }
     
-    if (s->gate_type == CLOCK_GATE) {
-        tw_event *e2 = tw_event_new(self, 10.5, lp);
-        message *msg2 = tw_event_data(e2);
-        msg2->type = CLOCK_MSG;
-        msg2->data.gid = self;
-        msg2->data.value = 0;
-        tw_event_send(e2);
-    }
+    /* if (s->gate_type == CLOCK_GATE) { */
+    /*     tw_event *e2 = tw_event_new(self, 10.5, lp); */
+    /*     message *msg2 = tw_event_data(e2); */
+    /*     msg2->type = CLOCK_MSG; */
+    /*     msg2->data.gid = self; */
+    /*     msg2->data.value = 0; */
+    /*     tw_event_send(e2); */
+    /* } */
     
     //printf("%u is all done! my type is %d\n", self, s->gate_type);
     
