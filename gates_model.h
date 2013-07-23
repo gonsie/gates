@@ -63,7 +63,7 @@ typedef struct {
     
     //variables for linking gates
     vector inputs;
-    vector internal;
+    vector internals;
     vector outputs;
     
     int received_events;
