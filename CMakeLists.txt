@@ -1,5 +1,7 @@
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
 
+## NP
+
 # configure the run for the specified number of processors
 IF(NOT np)
        SET(_np 1 CACHE INTERNAL "sequential" FORCE)
@@ -7,6 +9,8 @@ ELSE(NOT np)
 	SET(_np ${np} CACHE INTERNAL "parallel number of processors" FORCE)	
 ENDIF(NOT np)
 UNSET(np CACHE)
+
+## SYNTHETIC GRID CONFIGURATION
 
 # configure the run for the specified replication (grid based)
 # x
@@ -52,6 +56,8 @@ MATH(EXPR _ng "${_ngates}")
 MATH(EXPR _nlp "${_ng}/${_enp}")
 MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
 
+## DATA FILE
+
 # copy the data file to the build directory
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_ccx_data.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
@@ -60,7 +66,7 @@ EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAN
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
 MATH(EXPR _ll  "${_linelen} + 1")
 
-#MESSAGE("configure_file ${_ngates} ${_ll} ${_np} ${_x} ${_y} ${_xy} ${_inp} ${_npi} ${_nlp} ${_xlp}")
+## WAVE FILES
 
 # if specified, copy the wave data file to build directory
 IF(NOT wave)
@@ -71,7 +77,10 @@ ELSE(NOT wave)
 ENDIF(NOT wave)
 UNSET(wave CACHE)
 
+## RUN_CONFIG.H
+
 # write the header with variables
+#MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tnp = ${_np}\n\tx = ${_x}\n\ty = ${_y}\n\tx*y =  ${_xy}\n\tinp = ${_inp}\n\tinp = ${_npi}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 SET(gates_srcs
