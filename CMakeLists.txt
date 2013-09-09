@@ -30,13 +30,6 @@ ELSE(NOT y)
 ENDIF(NOT y)
 UNSET(y CACHE)
 
-# calculate single instance size
-CMAKE_POLICY(SET CMP0007 OLD)
-EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_SOURCE_DIR}/ccx_mpi.bench
-    OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
-STRING(REPLACE " " ";" _outlist ${_output})
-LIST(GET _outlist 0 _ngates)
-
 # calculate duplication run variables
 MATH(EXPR _xy "${_x} * ${_y}")
 IF(${_np} LESS ${_xy})
@@ -51,16 +44,19 @@ ELSE(${_np} LESS ${_xy})
     SET(_enp ${_npi})
 ENDIF(${_np} LESS ${_xy})
 
-# calculate single instance run variables
-MATH(EXPR _ng "${_ngates}")
-MATH(EXPR _nlp "${_ng}/${_enp}")
-MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
-
 ## DATA FILE
 
 # copy the data file to the build directory
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/ccx_lsi_gates_sort.txt ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_ccx_data.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
+
+# calculate single instance size
+CMAKE_POLICY(SET CMP0007 OLD)
+EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_BINARY_DIR}/data.vbench
+    OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
+STRING(REPLACE " " ";" _outlist ${_output})
+LIST(GET _outlist 0 _ngates)
 
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -79,8 +75,13 @@ UNSET(wave CACHE)
 
 ## RUN_CONFIG.H
 
+# calculate single instance run variables
+MATH(EXPR _ng "${_ngates}")
+MATH(EXPR _nlp "${_ng}/${_enp}")
+MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
+
 # write the header with variables
-#MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tnp = ${_np}\n\tx = ${_x}\n\ty = ${_y}\n\tx*y =  ${_xy}\n\tinp = ${_inp}\n\tinp = ${_npi}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
+MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tnp = ${_np}\n\tx = ${_x}\n\ty = ${_y}\n\tx*y =  ${_xy}\n\tinp = ${_inp}\n\tinp = ${_npi}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 SET(gates_srcs
