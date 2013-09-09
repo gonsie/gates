@@ -14,12 +14,12 @@ UNSET(np CACHE)
 
 # configure the run for the specified replication (grid based)
 # x
-IF(NOT x)
+IF(NOT z)
        SET(_x 1 CACHE INTERNAL "single width" FORCE)
-ELSE(NOT x)
-	SET(_x ${x} CACHE INTERNAL "multiple width with linking" FORCE)	
-ENDIF(NOT x)
-UNSET(x CACHE)
+ELSE(NOT z)
+	SET(_x ${z} CACHE INTERNAL "multiple width with linking" FORCE)	
+ENDIF(NOT z)
+UNSET(z CACHE)
 
 # y --> use old policy to avoid "True / Yes / y"
 CMAKE_POLICY(SET CMP0012 OLD)
