@@ -94,6 +94,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
     */
     
+    // because of integer division, fanout case not handled
     int input_count = (count - 2) / 2;
 
     // synthetic circuit mappings
@@ -134,7 +135,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->inputs->alloc = input_count;
     s->inputs->size = input_count;
     
-    for (i = 0; i < input_count; i+=2) {
+    for (i = 0; i < input_count; i++) {
         s->inputs->array[i].gid = inputs[i][0];
         s->inputs->array[i].value = inputs[i][1];
     }
@@ -153,9 +154,9 @@ void gates_init(gate_state *s, tw_lp *lp){
         output_size = inputs[1][0];
     }
     
-    if (COPY_COUNT > 1) {
-        output_size++;
-    }
+    // if (COPY_COUNT > 1) {
+    //     output_size++;
+    // }
     
     s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_size * sizeof(pair), 1);
     s->outputs->alloc = output_size;
@@ -276,9 +277,16 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             assert(in_msg->data.value < s->outputs->alloc);
             assert(in_msg->data.gid >= 0);
             assert(in_msg->data.gid < COPY_COUNT * TOTAL_GATE_COUNT);
+
+            // special case
+            if(s->gate_type == fanout_TYPE) {
+                in_msg->data.value = s->outputs->size;
+            }
+
             SWAP(&(s->outputs->array[in_msg->data.value].gid), &(in_msg->data.gid));
             s->outputs->size++;
             // !! NOTE: s->outputs is non-contiguously filled !!
+            // (except for fanout case)
         }
     } else if (in_msg->type == SOURCE_MSG) {
         //s->gate_function(s->inputs, s->outputs);
@@ -322,7 +330,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         tw_event_send(c);
         
     } else if (in_msg->type == LOGIC_CARY_MSG) {
-        assert(s->outputs->size == s->outputs->alloc);
+        assert(s->outputs->size <= s->outputs->alloc);
         for (i = 0; i < s->inputs->size; i++) {
             if(s->inputs->array[i].gid == in_msg->data.gid){
                 SWAP(&(s->inputs->array[i].value), &(in_msg->data.value));
