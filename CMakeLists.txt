@@ -60,7 +60,7 @@ LIST(GET _outlist 0 _ngates)
 
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
-MATH(EXPR _ll  "${_linelen} + 1")
+MATH(EXPR _ll  "${_linelen}")
 
 ## WAVE FILES
 
