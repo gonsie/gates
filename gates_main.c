@@ -99,7 +99,7 @@ int gates_main(int argc, char* argv[]){
         //sequential
         FILE *my_file = fopen(datapath, "r");
         for (i = 0; i < LP_COUNT; i++) {
-            fgets(global_input[i], LINE_LENGTH, my_file);
+            fgets(global_input[i], LINE_LENGTH+2, my_file);
         }
         fclose(my_file);
     }
