@@ -47,7 +47,7 @@ ENDIF(${_np} LESS ${_xy})
 ## DATA FILE
 
 # copy the data file to the build directory
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/ccx_lsi_gates_sort.txt.std ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_ccx_data.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 
