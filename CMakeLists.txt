@@ -65,6 +65,12 @@ EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAN
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
 MATH(EXPR _ll  "${_linelen}")
 
+SET(_grep_str "^\\S* 163 ")
+EXECUTE_PROCESS(COMMAND grep -m 1 ${_grep_str} ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk
+    OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
+STRING(REPLACE " " ";" _outlist ${_output})
+LIST(GET _outlist 0 _fanout)
+
 ## WAVE FILES
 
 # if specified, copy the wave data file to build directory
@@ -84,7 +90,7 @@ MATH(EXPR _nlp "${_ng}/${_enp}")
 MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
 
 # write the header with variables
-MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tnp = ${_np}\n\tx = ${_x}\n\ty = ${_y}\n\tx*y =  ${_xy}\n\tinp = ${_inp}\n\tinp = ${_npi}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
+MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tx = ${_x}\n\ty = ${_y}\n\tx*y =  ${_xy}\n\tinp = ${_inp}\n\tinp = ${_npi}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 SET(gates_srcs

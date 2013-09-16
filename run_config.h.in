@@ -23,5 +23,6 @@
 #define EXTRA_LP_COUNT @_xlp@
 
 #define WAVE_COUNT @_wc@
+#define FANOUT_START @_fanout@
 
 #endif
