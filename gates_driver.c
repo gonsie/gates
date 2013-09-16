@@ -298,8 +298,15 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             printf("Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
         }
         for (i = 0; i < s->outputs->size; i++) {
-            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
-            tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
+            double delay = g_tw_lookahead;
+            unsigned int recipient = s->outputs->array[i].gid;
+            if (recipient >= FANOUT_START) {
+                delay = 0.2;
+            } else {
+                double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+                delay = MESSAGE_PAD + jitter;
+            }
+            tw_event *e = tw_event_new(recipient, delay, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = self;
@@ -332,25 +339,40 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         tw_event_send(c);
         
     } else if (in_msg->type == LOGIC_CARY_MSG) {
-        assert(s->outputs->size <= s->outputs->alloc);
-        for (i = 0; i < s->inputs->size; i++) {
-            if(s->inputs->array[i].gid == in_msg->data.gid){
-                SWAP(&(s->inputs->array[i].value), &(in_msg->data.value));
-                break;
+        if (s->gate_type == fanout_TYPE) {
+            assert(s->inputs->size == 1);
+            assert(s->inputs->array[0].gid == in_msg->data.gid);
+            SWAP(&(s->inputs->array[0].value), &(in_msg->data.value));
+            for (i = 0; i < s->outputs->size; i++) {
+                double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+                tw_event *e = tw_event_new(s->outputs->array[i].gid, 0.2 + jitter, lp);
+                message *msg = tw_event_data(e);
+                msg->type = LOGIC_CARY_MSG;
+                msg->data.gid = self;
+                msg->data.value = s->inputs->array[0].value;
+                tw_event_send(e);
             }
-        }
-        
-        //If i have received any logic in, i need to recalculate & send my outputs
-        if (s->calc == FALSE) {
-            bf->c0 = 1;
-            s->calc = TRUE;
-            double jitter_offset = clock_round(tw_now(lp));
-            if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %u is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
-            tw_event *e = tw_event_new(self, jitter_offset + 0.5, lp);
-            message *msg =  tw_event_data(e);
-            msg->type = LOGIC_CALC_MSG;
-            msg->data.gid = self;
-            tw_event_send(e);
+        } else {
+            assert(s->outputs->size <= s->outputs->alloc);
+            for (i = 0; i < s->inputs->size; i++) {
+                if(s->inputs->array[i].gid == in_msg->data.gid){
+                    SWAP(&(s->inputs->array[i].value), &(in_msg->data.value));
+                    break;
+                }
+            }
+            
+            //If i have received any logic in, i need to recalculate & send my outputs
+            if (s->calc == FALSE) {
+                bf->c0 = 1;
+                s->calc = TRUE;
+                double jitter_offset = clock_round(tw_now(lp));
+                if (MESSAGE_PAD + jitter_offset < 0 ) printf("ERROR: %u is sending a message at a bad time: %f\n", self, MESSAGE_PAD + jitter_offset);
+                tw_event *e = tw_event_new(self, jitter_offset + 0.5, lp);
+                message *msg =  tw_event_data(e);
+                msg->type = LOGIC_CALC_MSG;
+                msg->data.gid = self;
+                tw_event_send(e);
+            }
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
         int changed = function_array[s->gate_type](s->inputs, s->internals, s->outputs);
@@ -358,8 +380,15 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         
         //send event to outputs
         for(i = 0; i < s->outputs->size; i++){
-            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
-            tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
+            double delay = g_tw_lookahead;
+            unsigned int recipient = s->outputs->array[i].gid;
+            if (recipient >= FANOUT_START) {
+                delay = 0.2;
+            } else {
+                double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+                delay = MESSAGE_PAD + jitter;
+            }
+            tw_event *e = tw_event_new(recipient, delay, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
             msg->data.gid = self;
@@ -410,7 +439,9 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == SOURCE_MSG) {
         assert(s->outputs->size >= 0);
         for (i = 0; i < s->outputs->size; i++) {
-            tw_rand_reverse_unif(lp->rng);
+            if (s->outputs->array[i].gid < FANOUT_START) {
+                tw_rand_reverse_unif(lp->rng);
+            }
             tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == CLOCK_MSG) {
@@ -418,23 +449,32 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == LOGIC_CARY_MSG) {
-        assert(s->inputs->size >= 0);
-        for (i = 0; i < s->inputs->size; i++) {
-            if(s->inputs->array[i].gid == in_msg->data.gid){
-                SWAP(&(s->inputs->array[i].value), &(in_msg->data.value));
-                break;
+        if (s->gate_type == fanout_TYPE) {
+            SWAP(&(s->inputs->array[0].value), &(in_msg->data.value));
+            for (i = 0; i < s->outputs->size; i++) {
+                tw_rand_reverse_unif(lp->rng);
             }
-        }
-        
-        //If I took the calc=FALSE path, bf->c0 == 1
-        if (bf->c0 == 1) {
-            s->calc = FALSE;
+        } else {
+            assert(s->inputs->size >= 0);
+            for (i = 0; i < s->inputs->size; i++) {
+                if(s->inputs->array[i].gid == in_msg->data.gid){
+                    SWAP(&(s->inputs->array[i].value), &(in_msg->data.value));
+                    break;
+                }
+            }
+            
+            //If I took the calc=FALSE path, bf->c0 == 1
+            if (bf->c0 == 1) {
+                s->calc = FALSE;
+            }
         }
     } else if (in_msg->type == LOGIC_CALC_MSG) {
         s->calc = TRUE;
         assert(s->outputs->size >= 0);
         for(i = 0; i < s->outputs->size; i++){
-            tw_rand_reverse_unif(lp->rng);
+            if (s->outputs->array[i].gid < FANOUT_START) {
+                tw_rand_reverse_unif(lp->rng);
+            }
         }
     } else if (in_msg->type == WAVE_MSG) {
         if (self != 0){

@@ -58,7 +58,7 @@ int gates_main(int argc, char* argv[]){
     g_tw_custom_lp_global_to_local_map = &gates_custom_round_robin_mapping_to_local;
     
     g_tw_events_per_pe = 600000;
-    g_tw_lookahead = MESSAGE_PAD;
+    g_tw_lookahead = 0.2;
     
     //My kp count
     g_tw_nkp = 64;
