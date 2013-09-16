@@ -10,7 +10,7 @@
 #include "ross.h"
 #include "run_config.h"
 #include "gates_model.h"
-#include "lsi_10k_types.h"
+#include "library_types.h"
 
 //exten'd variables
 unsigned int source_interval = 1;
