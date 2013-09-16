@@ -16,11 +16,20 @@ if [ -e current/ ]; then
     if [ ! -e current/old/ ]; then
         mkdir current/old
     fi
-    mv current/*.* current/old/
+    mkdir tmp
+    mv current/*.* tmp
+    mv tmp current/old/bak-`date +%F-%H`
 fi
 
 # get current folder
 cp -r $1/*.* ./current/
 
-cp current/*.c ./
-cp current/*.h ./
+# update symbolic links
+if [ ! -e library_types.h ]; then
+    rm library_types.h
+    ln -s current/*_types.h library_types.h
+    rm library_functions.c
+    ln -s current/*_functions.c library_functions.c
+    rm library_lookups.c
+    ln -s current/*_lookups.c library_lookups.c
+fi
