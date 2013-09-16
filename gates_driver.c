@@ -168,7 +168,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
     
     //Setup messages have a staggered arrival btwn 1 and 8
-    tw_event *e = tw_event_new(self, 1 + tw_rand_unif(lp->rng)*7, lp);
+    tw_event *e = tw_event_new(self, 1 + tw_rand_unif(lp->rng)*3, lp);
     message *msg = tw_event_data(e);
     msg->type = SETUP_MSG;
     msg->data.gid = self;
@@ -242,8 +242,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     if (in_msg->type == SETUP_MSG) {
         if (in_msg->data.gid == self) {
             for (i = 0; i < s->inputs->size; i++) {
-                double jitter = (tw_rand_unif(lp->rng));
-                tw_event *e = tw_event_new(s->inputs->array[i].gid, jitter, lp);
+                double jitter = (tw_rand_unif(lp->rng)*3);
+                double window_start = 6 - tw_now(lp);
+                tw_event *e = tw_event_new(s->inputs->array[i].gid, window_start + jitter, lp);
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
                 msg->data.gid = self;
@@ -254,8 +255,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             if (self == 0) {
                 // LP 0 is specially designated to inform of wave printing (gid array filled on node 0)
                 for (i = 0; i < WAVE_COUNT; i++) {
-                    double jitter = (tw_rand_unif(lp->rng));
-                    tw_event *w = tw_event_new(wave_gids[i], 1 + jitter, lp);
+                    double jitter = (tw_rand_unif(lp->rng)*2);
+                    double window_start = 4 - tw_now(lp);
+                    tw_event *w = tw_event_new(wave_gids[i], window_start + jitter, lp);
                     message *wm = tw_event_data(w);
                     wm->type = WAVE_MSG;
                     // wave id (ascii value)
