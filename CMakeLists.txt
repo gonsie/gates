@@ -47,7 +47,10 @@ ENDIF(${_np} LESS ${_xy})
 ## DATA FILE
 
 # copy the data file to the build directory
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
+EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
+    OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
+MESSAGE("${_block_data_file}")
+CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_ccx_data.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 
