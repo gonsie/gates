@@ -19,6 +19,9 @@ if [ -e current/ ]; then
     mkdir tmp
     mv current/*.* tmp
     mv tmp current/old/bak-`date +%F-%H`
+else
+    mkdir current
+    mkdir current/old
 fi
 
 # get current folder
@@ -33,3 +36,13 @@ if [ ! -e library_types.h ]; then
     rm library_lookups.c
     ln -s current/*_lookups.c library_lookups.c
 fi
+
+# deal with data file
+## sort by gid is done by production.sh
+## standardize line length
+python scripts/line_standard.py current/*_gates_sort.txt
+## make sym link
+rm data_file.lnk
+ln -s current/*_gates_sort.txt.std data_file.lnk
+
+
