@@ -433,8 +433,8 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 
         } else {
             assert(s->outputs->size > 0);
+            SWAP(&(s->outputs->array[in_msg->data.value].gid), &(in_msg->data.gid));
             s->outputs->size--;
-            SWAP(&(s->outputs->array[s->outputs->size].gid), &(in_msg->data.value));
         }
     } else if (in_msg->type == SOURCE_MSG) {
         assert(s->outputs->size >= 0);
