@@ -295,7 +295,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         //printf("Source doing a wave of inputs\n");
         //Assume node 0 is an input
         if (self == 0) {
-            printf("Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
+            tw_output(lp, "Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
+            // printf("Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
         }
         for (i = 0; i < s->outputs->size; i++) {
             double delay = g_tw_lookahead;
