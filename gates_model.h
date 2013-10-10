@@ -67,6 +67,7 @@ typedef struct {
     vector outputs;
     
     int received_events;
+    int roll_backs;
     int calc;
 
     BOOL wave_print;
@@ -83,6 +84,8 @@ extern tw_lptype gates_lps[];
 extern char global_input[][LINE_LENGTH+1];
 extern int wave_gids[];
 extern FILE * wave_out_file;
+extern int min_rollback_events;
+extern int min_rollback_gid;
 
 //Duplcation mapping functions
 inline int instance_node(unsigned int);

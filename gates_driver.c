@@ -30,6 +30,8 @@ double latest_ts = 0.0;
 
 int global_swap_count = 0;
 int error_count = 0;
+int min_rollback_events = 1000000000;
+int min_rollback_gid = -1;
 
 void SWAP(unsigned int *a, unsigned int *b) {
     // a ^= b; b ^= a; a ^= b; 
@@ -44,6 +46,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     unsigned int gate = lp->id % TOTAL_GATE_COUNT;
     int i;
     s->received_events = 0;
+    s->roll_backs = 0;
     s->calc = FALSE;
     s->wave_print = FALSE;
     
@@ -416,6 +419,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     unsigned int self = lp->gid;
     
     s->received_events--;
+    s->roll_backs++;
     //printf("%u reversing %d\n", self, in_msg->type);
     //fflush(stdout);
     assert(in_msg->type >= 0);
@@ -494,6 +498,11 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 
 void gates_final(gate_state *s, tw_lp *lp){
     unsigned int self = lp->gid;
+
+    if (s->roll_backs < min_rollback_events){
+        min_rollback_events = s->roll_backs;
+        min_rollback_gid = self;
+    }
     
     if(FALSE) {
         printf("#%u e%d\n", self, s->received_events);
