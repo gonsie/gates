@@ -248,14 +248,6 @@ int gates_main(int argc, char* argv[]){
     
     tw_run();
 
-    if (g_tw_synchronization_protocol == 3) {
-        int global_min_rollback_events = 1000000000;    
-        int rc = MPI_Allreduce(&min_rollback_events, &global_min_rollback_events, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
-        if (min_rollback_events <= global_min_rollback_events) {
-            printf("LP %d has minimum rollbacks (%d)\n", min_rollback_gid, global_min_rollback_events);
-        }
-    }
-
     tw_end();
     
     return 0;
