@@ -25,4 +25,6 @@
 #define WAVE_COUNT @_wc@
 #define FANOUT_START @_fanout@
 
+#define MAX_LP_COUNT @_maxlp@
+
 #endif
