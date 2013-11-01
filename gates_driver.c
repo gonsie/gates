@@ -184,16 +184,7 @@ void gates_init(gate_state *s, tw_lp *lp){
         msg2->data.value = -1;
         tw_event_send(e2);
     }
-    
-    /* if (s->gate_type == CLOCK_GATE) { */
-    /*     tw_event *e2 = tw_event_new(self, 10.5, lp); */
-    /*     message *msg2 = tw_event_data(e2); */
-    /*     msg2->type = CLOCK_MSG; */
-    /*     msg2->data.gid = self; */
-    /*     msg2->data.value = 0; */
-    /*     tw_event_send(e2); */
-    /* } */
-    
+
     //printf("%u is all done! my type is %d\n", self, s->gate_type);
     
 }
@@ -322,24 +313,6 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         msg->data.gid = self;
         msg->data.value = -1;
         tw_event_send(e);
-    } else if (in_msg->type == CLOCK_MSG) {
-        for (i = 0; i < s->outputs->size; i++) {
-            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
-            tw_event *e = tw_event_new(s->outputs->array[i].gid, MESSAGE_PAD + jitter, lp);
-            message *msg = tw_event_data(e);
-            msg->type = LOGIC_CARY_MSG;
-            msg->data.gid = self;
-            msg->data.value = in_msg->data.value;
-            tw_event_send(e);
-        }
-        
-        tw_event *c = tw_event_new(self, 1, lp);
-        message *cmsg = tw_event_data(c);
-        cmsg->type = CLOCK_MSG;
-        cmsg->data.gid = self;
-        cmsg->data.value = LOGIC_NOT(in_msg->data.value);
-        tw_event_send(c);
-        
     } else if (in_msg->type == LOGIC_CARY_MSG) {
         if (s->gate_type == fanout_TYPE) {
             assert(s->inputs->size == 1);
@@ -445,10 +418,6 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             if (s->outputs->array[i].gid < FANOUT_START) {
                 tw_rand_reverse_unif(lp->rng);
             }
-            tw_rand_reverse_unif(lp->rng);
-        }
-    } else if (in_msg->type == CLOCK_MSG) {
-        for (i = 0; i < s->outputs->size; i++) {
             tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == LOGIC_CARY_MSG) {

@@ -26,8 +26,7 @@ typedef int LOGIC;
 #define LOGIC_CARY_MSG (2)
 #define LOGIC_CALC_MSG (3)
 #define SINK_MSG (4)
-#define CLOCK_MSG (5)
-#define WAVE_MSG (6)
+#define WAVE_MSG (5)
 
 //sim settings
 #define MESSAGE_PAD (0.4)
