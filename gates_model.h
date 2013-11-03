@@ -23,10 +23,9 @@ typedef int LOGIC;
 //message types
 #define SOURCE_MSG (0)
 #define SETUP_MSG (1)
-#define LOGIC_CARY_MSG (2)
-#define LOGIC_CALC_MSG (3)
-#define SINK_MSG (4)
-#define WAVE_MSG (5)
+#define LOGIC_MSG (2)
+#define SINK_MSG (3)
+#define WAVE_MSG (4)
 
 //sim settings
 #define MESSAGE_PAD (0.4)
