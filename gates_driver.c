@@ -293,12 +293,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         for (i = 0; i < s->outputs->size; i++) {
             double delay = g_tw_lookahead;
             unsigned int recipient = s->outputs->array[i].gid;
-            if (recipient >= FANOUT_START) {
-                delay = 0.2;
-            } else {
-                double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
-                delay = MESSAGE_PAD + jitter;
-            }
+            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+            delay = MESSAGE_PAD + jitter;
             tw_event *e = tw_event_new(recipient, delay, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
@@ -357,12 +353,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         for(i = 0; i < s->outputs->size; i++){
             double delay = g_tw_lookahead;
             unsigned int recipient = s->outputs->array[i].gid;
-            if (recipient >= FANOUT_START) {
-                delay = 0.2;
-            } else {
-                double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
-                delay = MESSAGE_PAD + jitter;
-            }
+            double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
+            delay = MESSAGE_PAD + jitter;
             tw_event *e = tw_event_new(recipient, delay, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_CARY_MSG;
@@ -415,9 +407,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == SOURCE_MSG) {
         assert(s->outputs->size >= 0);
         for (i = 0; i < s->outputs->size; i++) {
-            if (s->outputs->array[i].gid < FANOUT_START) {
-                tw_rand_reverse_unif(lp->rng);
-            }
+            tw_rand_reverse_unif(lp->rng);
             tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == LOGIC_CARY_MSG) {
@@ -444,9 +434,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         s->calc = TRUE;
         assert(s->outputs->size >= 0);
         for(i = 0; i < s->outputs->size; i++){
-            if (s->outputs->array[i].gid < FANOUT_START) {
-                tw_rand_reverse_unif(lp->rng);
-            }
+            tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == WAVE_MSG) {
         if (self != 0){
