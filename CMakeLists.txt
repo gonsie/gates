@@ -10,40 +10,6 @@ ELSE(NOT np)
 ENDIF(NOT np)
 UNSET(np CACHE)
 
-## SYNTHETIC GRID CONFIGURATION
-
-# configure the run for the specified replication (grid based)
-# x
-IF(NOT z)
-       SET(_x 1 CACHE INTERNAL "single width" FORCE)
-ELSE(NOT z)
-	SET(_x ${z} CACHE INTERNAL "multiple width with linking" FORCE)	
-ENDIF(NOT z)
-UNSET(z CACHE)
-
-# y --> use old policy to avoid "True / Yes / y"
-CMAKE_POLICY(SET CMP0012 OLD)
-IF(NOT y)
-    SET(_y 1 CACHE INTERNAL "single height" FORCE)
-ELSE(NOT y)
-    SET(_y ${y} CACHE INTERNAL "multiple height no linking" FORCE)	
-ENDIF(NOT y)
-UNSET(y CACHE)
-
-# calculate duplication run variables
-MATH(EXPR _xy "${_x} * ${_y}")
-IF(${_np} LESS ${_xy})
-# many instances on a single processor
-    MATH(EXPR _inp "${_xy} / ${_np}")
-    SET(_npi 0)
-    SET(_enp 1)
-ELSE(${_np} LESS ${_xy})
-# many processors for a single instance
-    MATH(EXPR _npi "${_np} / ${_xy}") # assume _xy evenly divides _np and _xy > 0
-    SET(_inp 0)
-    SET(_enp ${_npi})
-ENDIF(${_np} LESS ${_xy})
-
 ## DATA FILE
 
 # copy the data file to the build directory
@@ -86,11 +52,11 @@ UNSET(wave CACHE)
 
 # calculate single instance run variables
 MATH(EXPR _ng "${_ngates}")
-MATH(EXPR _nlp "${_ng}/${_enp}")
-MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
+MATH(EXPR _nlp "${_ng}/${_np}")
+MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_np})")
 
 # write the header with variables
-MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tx = ${_x}\n\ty = ${_y}\n\tx*y =  ${_xy}\n\tinp = ${_inp}\n\tinp = ${_npi}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
+MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 SET(gates_srcs
