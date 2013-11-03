@@ -13,8 +13,9 @@ UNSET(np CACHE)
 ## DATA FILE
 
 # copy the data file to the build directory
-EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
-    OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
+# EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
+#     OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
+SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/better_partition_ccx_lsi.txt.renumbered.pad.std)
 MESSAGE("${_block_data_file}")
 CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
@@ -26,6 +27,7 @@ EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_BINARY_DIR}/data.vbench
     OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
 STRING(REPLACE " " ";" _outlist ${_output})
 LIST(GET _outlist 0 _ngates)
+SET(_ngates 200981)
 
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
