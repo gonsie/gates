@@ -88,12 +88,12 @@ int gates_main(int argc, char* argv[]){
     }
     
     //MPI_READ on rank 0, scatter around
-    // BLOCK_SIZE is the size of the block of text for any single processor
+    // MAX_BLOCK_SIZE is the max size of the block of text for any single processor
     // the text has been grouped into blocks for each processor
     else {
         // size of text block to be read
-        int BLOCK_SIZE = MAX_LP_COUNT * LINE_LENGTH;
-        char *block = (char *) malloc(BLOCK_SIZE);
+        int MAX_BLOCK_SIZE = MAX_LP_COUNT * LINE_LENGTH;
+        char *block = (char *) malloc(MAX_BLOCK_SIZE);
 
         // all reading happens from task 0
         if (g_tw_mynode == 0) {
@@ -103,6 +103,7 @@ int gates_main(int argc, char* argv[]){
 
             // get max block size
             for (i = 0; i < GLOBAL_NP_COUNT; i++) {
+                int BLOCK_SIZE = chaco_partition_length[i] * LINE_LENGTH;
                 fread(block, BLOCK_SIZE, 1, f);
                 if (g_tw_mynode == i) {
                     for (j = 0; j < g_tw_nlp; j++) {
@@ -116,6 +117,7 @@ int gates_main(int argc, char* argv[]){
             fclose(f);
             free(block);
         } else {
+            int BLOCK_SIZE = chaco_partition_length[g_tw_mynode] * LINE_LENGTH;
             MPI_Status req;
             MPI_Recv(block, BLOCK_SIZE, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &req);
             for (j = 0; j < g_tw_nlp; j++) {
