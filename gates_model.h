@@ -100,6 +100,9 @@ extern gate_func function_array[];
 typedef float (*delay_func)(int in_pin, int out_pin, BOOL rising);
 extern delay_func delay_array[];
 
+typedef void (*reverse_func)(vector input, vector internal, vector output);
+extern reverse_func reverse_array[];
+
 extern int gate_input_size[];
 extern int gate_internal_size[];
 extern int gate_output_size[];
