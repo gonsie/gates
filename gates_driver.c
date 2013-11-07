@@ -394,6 +394,9 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 break;
             }
         }
+
+        reverse_array[s->gate_type](s->inputs, s->internals, s->outputs);
+
     } else if (in_msg->type == WAVE_MSG) {
         if (self != 0){
             SWAP(&(s->wave_print), &(in_msg->data.value));
