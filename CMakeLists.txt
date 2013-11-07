@@ -65,9 +65,8 @@ SET(gates_srcs
     gates_main.c
     gates_driver.c 
     gates_model.h
-    library_types.h
-    library_functions.c
-    library_lookups.c
+    library.h
+    library.c
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
