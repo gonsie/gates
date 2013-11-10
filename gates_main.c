@@ -66,7 +66,7 @@ int gates_main(int argc, char* argv[]){
     g_tw_nkp = 64;
     
     //My lp count
-    g_tw_nlp = chaco_partition_length[g_tw_mynode];
+    g_tw_nlp = partition_lengths[g_tw_mynode];
     
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {
@@ -103,7 +103,7 @@ int gates_main(int argc, char* argv[]){
 
             // get max block size
             for (i = 0; i < GLOBAL_NP_COUNT; i++) {
-                int BLOCK_SIZE = chaco_partition_length[i] * LINE_LENGTH;
+                int BLOCK_SIZE = partition_lengths[i] * LINE_LENGTH;
                 fread(block, BLOCK_SIZE, 1, f);
                 if (g_tw_mynode == i) {
                     for (j = 0; j < g_tw_nlp; j++) {
@@ -112,12 +112,17 @@ int gates_main(int argc, char* argv[]){
                 } else {
                     MPI_Send(block, BLOCK_SIZE, MPI_CHAR, i, 0, MPI_COMM_WORLD);
                 }
+
+                // read blank space
+                BLOCK_SIZE = (MAX_LP_COUNT - partition_lengths[i]) * LINE_LENGTH;
+                fread(block, BLOCK_SIZE, 1, f);
+                printf("Reading %d lines for node %d\n", partition_lengths[i], i);
             }
 
             fclose(f);
             free(block);
         } else {
-            int BLOCK_SIZE = chaco_partition_length[g_tw_mynode] * LINE_LENGTH;
+            int BLOCK_SIZE = partition_lengths[g_tw_mynode] * LINE_LENGTH;
             MPI_Status req;
             MPI_Recv(block, BLOCK_SIZE, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &req);
             for (j = 0; j < g_tw_nlp; j++) {
