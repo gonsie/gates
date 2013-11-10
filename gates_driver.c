@@ -11,6 +11,7 @@
 #include "run_config.h"
 #include "gates_model.h"
 #include "library.h"
+#include "chaco_partition.h"
 
 //exten'd variables
 unsigned int source_interval = 1;
@@ -48,8 +49,9 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->calc = FALSE;
     s->wave_print = FALSE;
     
-    assert(self < COPY_COUNT * TOTAL_GATE_COUNT);
+    assert(self < TOTAL_GATE_COUNT);
 
+/*
     //FUCK THIS NOISE
     if (self == 0) {
         for (i = 0; i < g_tw_nlp; i++) {
@@ -59,7 +61,7 @@ void gates_init(gate_state *s, tw_lp *lp){
             assert(line_gid == (i*stride));
         }
     }
-
+*/
     
     int gid = -1;
     int type = -1;
@@ -97,37 +99,10 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     // because of integer division, fanout case not handled
     int input_count = (count - 2) / 2;
-
-    // synthetic circuit mappings
-    if (instance_x(self) == 0) {
-        int tmp = 0;
-        unsigned int in2[16][2];
-        for (i = 0; i < input_count; i++) {
-            if (inputs[i][0] < TOTAL_GATE_COUNT) {
-                in2[tmp][0] = inputs[i][0];
-                in2[tmp][1] = inputs[i][1];
-                tmp++;
-            }
-        }
-        input_count = tmp;
-        for (i = 0; i < tmp; i++) {
-            inputs[i][0] = in2[i][0] + instance_0(self);
-            inputs[i][1] = in2[i][1];
-        }
-    } else {
-        for (i = 0; i < input_count; i++) {
-            if (inputs[i][0] >= TOTAL_GATE_COUNT) {
-                int gate_id = inputs[i][0] - TOTAL_GATE_COUNT;
-                inputs[i][0] = (instance_0(self) - TOTAL_GATE_COUNT) + gate_id;
-            } else {
-                inputs[i][0] = inputs[i][0] + instance_0(self);
-            }
-        }
-    }
     
     for (i = 0; i < input_count; i ++) {
         assert(inputs[i][0] >= 0);
-        assert(inputs[i][0] < COPY_COUNT * TOTAL_GATE_COUNT);
+        assert(inputs[i][0] < TOTAL_GATE_COUNT);
     }
     
     int input_size = gate_input_size[type];
@@ -270,7 +245,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             assert(in_msg->data.value >= 0);
             assert(in_msg->data.value < s->outputs->alloc);
             assert(in_msg->data.gid >= 0);
-            assert(in_msg->data.gid < COPY_COUNT * TOTAL_GATE_COUNT);
+            assert(in_msg->data.gid < TOTAL_GATE_COUNT);
 
             // special case
             if(s->gate_type == fanout_TYPE) {
@@ -297,7 +272,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             delay = MESSAGE_PAD + jitter;
             tw_event *e = tw_event_new(recipient, delay, lp);
             message *msg = tw_event_data(e);
-            msg->type = LOGIC_CARY_MSG;
+            msg->type = LOGIC_MSG;
             msg->data.gid = self;
             msg->data.value = (tw_rand_unif(lp->rng) < 0.5) ? 0 : 1;
             tw_event_send(e);
@@ -336,7 +311,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             message *msg = tw_event_data(e);
             msg->type = LOGIC_MSG;
             msg->data.gid = self;
-            msg->data.value = s->outputs->array[i].value
+            msg->data.value = s->outputs->array[i].value;
             tw_event_send(e);
         }
         
@@ -425,7 +400,7 @@ void gates_final(gate_state *s, tw_lp *lp){
     }
     return;
 }
-
+/*
 //#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
@@ -535,7 +510,7 @@ int instance_y(unsigned int gid) {
 int instance_0(unsigned int gid) {
     return instance_id(gid) * TOTAL_GATE_COUNT;
 }
-
+*/
 /*
 tw_peid gates_custom_linear_mapping_to_pe(tw_lpid gid){
     if (gid >= EXTRA_LP_COUNT * (LP_COUNT + 1)) {
@@ -601,7 +576,7 @@ tw_lptype gates_lps[] = {
         (event_f) gates_event,
         (revent_f) gates_event_rc,
         (final_f) gates_final,
-        (map_f) gates_custom_round_robin_mapping_to_pe,
+        (map_f) gates_chaco_partition_mapping_to_pe,
         sizeof(gate_state)  },
     { 0 },
 };

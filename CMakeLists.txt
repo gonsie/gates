@@ -28,6 +28,7 @@ EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_BINARY_DIR}/data.vbench
 STRING(REPLACE " " ";" _outlist ${_output})
 LIST(GET _outlist 0 _ngates)
 SET(_ngates 200981)
+SET(_maxlp 7672)
 
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -67,6 +68,9 @@ SET(gates_srcs
     gates_model.h
     library.h
     library.c
+    chaco_partition.h
+    chaco_partition_mapping.c
+    chaco_32.c
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
