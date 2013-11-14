@@ -115,8 +115,8 @@ int gates_main(int argc, char* argv[]){
 
                 // read blank space
                 BLOCK_SIZE = (MAX_LP_COUNT - partition_lengths[i]) * LINE_LENGTH;
-                fread(block, BLOCK_SIZE, 1, f);
-                printf("Reading %d lines for node %d\n", partition_lengths[i], i);
+                if (BLOCK_SIZE > 0) fread(block, BLOCK_SIZE, 1, f);
+                printf("Reading %d lines for node %d (plus %d blanks)\n", partition_lengths[i], i, (MAX_LP_COUNT - partition_lengths[i]));
             }
 
             fclose(f);
@@ -128,6 +128,7 @@ int gates_main(int argc, char* argv[]){
             for (j = 0; j < g_tw_nlp; j++) {
                 strncpy(global_input[j], block + (j * LINE_LENGTH), LINE_LENGTH);
             }
+            printf("Rank %d received its block\n", g_tw_mynode);
         }
     }
 
