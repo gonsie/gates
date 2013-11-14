@@ -17,7 +17,7 @@
 unsigned int source_interval = 1;
 unsigned int sink_interval = 5;
 
-char global_input[LP_COUNT+1][LINE_LENGTH + 1];
+char global_input[MAX_LP_COUNT+1][LINE_LENGTH + 1];
 int wave_gids[WAVE_COUNT];
 
 // #define DEBUG_TRACE 1
