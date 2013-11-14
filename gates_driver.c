@@ -211,6 +211,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             for (i = 0; i < s->inputs->size; i++) {
                 double jitter = (tw_rand_unif(lp->rng)*3);
                 double window_start = 6 - tw_now(lp);
+                assert (window_start + jitter >= 0.1);
                 tw_event *e = tw_event_new(s->inputs->array[i].gid, window_start + jitter, lp);
                 message *msg = tw_event_data(e);
                 msg->type = SETUP_MSG;
@@ -224,6 +225,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 for (i = 0; i < WAVE_COUNT; i++) {
                     double jitter = (tw_rand_unif(lp->rng)*2);
                     double window_start = 4 - tw_now(lp);
+                    assert (window_start + jitter >= 0.1);
                     tw_event *w = tw_event_new(wave_gids[i], window_start + jitter, lp);
                     message *wm = tw_event_data(w);
                     wm->type = WAVE_MSG;
@@ -270,6 +272,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             unsigned int recipient = s->outputs->array[i].gid;
             double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
             delay = MESSAGE_PAD + jitter;
+            assert(delay >= 0.1);
             tw_event *e = tw_event_new(recipient, delay, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_MSG;
@@ -307,6 +310,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         int changed = function_array[s->gate_type](s->inputs, s->internals, s->outputs);
         for (i = 0; i < s->outputs->size; i++){
             float delay = delay_array[s->gate_type](in_pin, i, rising);
+            assert(delay >= 0.1);
             tw_event *e = tw_event_new(s->outputs->array[i].gid, delay, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_MSG;
