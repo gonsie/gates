@@ -59,7 +59,6 @@ typedef struct {
     
     int received_events;
     int roll_backs;
-    int calc;
 
     BOOL wave_print;
     char wave_id;

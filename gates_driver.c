@@ -46,7 +46,6 @@ void gates_init(gate_state *s, tw_lp *lp){
     int i;
     s->received_events = 0;
     s->roll_backs = 0;
-    s->calc = FALSE;
     s->wave_print = FALSE;
     
     assert(self < TOTAL_GATE_COUNT);
