@@ -64,9 +64,9 @@ void gates_init(gate_state *s, tw_lp *lp){
     
     int gid = -1;
     int type = -1;
-    unsigned int inputs[16][2];
-    
-    int count = sscanf(global_input[gate], "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d", &gid, &type, &inputs[0][0], &inputs[0][1],  &inputs[1][0], &inputs[1][1], &inputs[2][0], &inputs[2][1], &inputs[3][0], &inputs[3][1], &inputs[4][0], &inputs[4][1],  &inputs[5][0], &inputs[5][1], &inputs[6][0], &inputs[6][1], &inputs[7][0], &inputs[7][1], &inputs[8][0], &inputs[8][1],  &inputs[9][0], &inputs[9][1], &inputs[10][0], &inputs[10][1], &inputs[11][0], &inputs[11][1], &inputs[12][0], &inputs[12][1],  &inputs[13][0], &inputs[13][1], &inputs[14][0], &inputs[14][1], &inputs[15][0], &inputs[15][1]);
+    unsigned int outputs[4][2];
+
+    int count = sscanf(global_input[gate], "%d %d %d %d %d %d %d %d %d %d ", &gid, &type, &outputs[0][0], &outputs[0][1],  &outputs[1][0], &outputs[1][1], &outputs[2][0], &outputs[2][1], &outputs[3][0], &outputs[3][1]);
 
     if (count < 2) {
         printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
@@ -77,65 +77,42 @@ void gates_init(gate_state *s, tw_lp *lp){
 
     s->gate_type = type;
     
-    /*
-    if (s->gate_type == INPUT_GATE) {
-        if (count > 3) {
-            printf("This input gate %u has more than one input %d !\n", self, count -2);
-        } else if (count == 3) {
-            if (inputs[0] >= TOTAL_GATE_COUNT) {
-                if (instance_x != 0) { //This goes to a different instance
-                    //needs to link to instance at (intsance_x - 1, instance_y)
-                    int real_id = TOTAL_GATE_COUNT - inputs[0];
-                    inputs[0] = (instance_0 - TOTAL_GATE_COUNT) + real_id;
-                    s->gate_type = DFF_GATE;
-                } else {
-                    count--;
-                }
-            }
-        } 
-    }
-    */
-    
     // because of integer division, fanout case not handled
-    int input_count = (count - 2) / 2;
+    int output_count = (count - 2) / 2;
     
-    for (i = 0; i < input_count; i ++) {
-        assert(inputs[i][0] >= 0);
-        assert(inputs[i][0] < TOTAL_GATE_COUNT);
+    for (i = 0; i < output_count; i ++) {
+        // assert(outputs[i][0] >= 0); // -1 here means pin goes nowhere
+        assert(outputs[i][0] < TOTAL_GATE_COUNT);
     }
     
+    // Init input vector
     int input_size = gate_input_size[type];
-    assert(input_count <= input_size);
-    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + ((input_count) * sizeof(pair)), 1);
-    s->inputs->alloc = input_count;
-    s->inputs->size = input_count;
+    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(vector) + (input_size * sizeof(pair)), 1);
+    s->inputs->alloc = input_size;
+    s->inputs->size = 0;
     
-    for (i = 0; i < input_count; i++) {
-        s->inputs->array[i].gid = inputs[i][0];
-        s->inputs->array[i].value = inputs[i][1];
-    }
-    
-    // Set up internal vector
+    // Init internal vector
     int internal_size = gate_internal_size[type];
-    s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(vector) + internal_size * sizeof(pair), 1);
+    s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(vector) + (internal_size * sizeof(pair)), 1);
     s->internals->alloc = internal_size;
     s->internals->size = 0;
 
-    // Set up output vector
+    // Init output vector
     int output_size = gate_output_size[type];
+    s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + (output_size * sizeof(pair)), 1);
+    s->outputs->alloc = output_size;
+    s->outputs->size = 0;
+
+    assert(output_size == output_count);
+    for (i = 0; i < output_count; i++) {
+        s->outputs->array[i].gid = outputs[i][0];
+        s->outputs->array[i].value = outputs[i][1];
+    }
 
     // special cases
     if (type == fanout_TYPE) {
-        output_size = inputs[1][0];
+        output_size = outputs[1][0];
     }
-    
-    // if (COPY_COUNT > 1) {
-    //     output_size++;
-    // }
-    
-    s->outputs = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(vector) + output_size * sizeof(pair), 1);
-    s->outputs->alloc = output_size;
-    s->outputs->size = 0;
     
     if (s->gate_type == output_gate_TYPE) {
         //s->outputs->array[0].gid = SINK_ID;
@@ -145,7 +122,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     //Setup messages have a staggered arrival btwn 1 and 8
     tw_event *e = tw_event_new(self, 1 + tw_rand_unif(lp->rng)*3, lp);
     message *msg = tw_event_data(e);
-    msg->type = SETUP_MSG;
+    msg->type = INIT_MSG;
     msg->data.gid = self;
     msg->data.value = self;
     tw_event_send(e);
