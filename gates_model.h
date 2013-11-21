@@ -21,11 +21,12 @@ typedef int LOGIC;
 #define LOGIC_NOT(x) ((x) + 1) % 2
 
 //message types
-#define SOURCE_MSG (0)
-#define SETUP_MSG (1)
-#define LOGIC_MSG (2)
-#define SINK_MSG (3)
-#define WAVE_MSG (4)
+#define INIT_MSG (0)
+#define SOURCE_MSG (1)
+#define SETUP_MSG (2)
+#define LOGIC_MSG (3)
+#define SINK_MSG (4)
+#define WAVE_MSG (5)
 
 //sim settings
 #define MESSAGE_PAD (0.4)
