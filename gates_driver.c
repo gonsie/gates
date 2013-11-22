@@ -83,6 +83,8 @@ void gates_init(gate_state *s, tw_lp *lp){
         // HACK fanouts store output size in s->internals
         assert(1 == sscanf(line, "%d%n", &s->internals, &offset));
         line += offset;
+        s->internals = 0;
+        // set to 0 to count up. Essetially this value doesn't need to be read since it doesn't go anywhere
     }
     s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", gate_output_size[s->gate_type] * sizeof(int), 1);
     s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", gate_output_size[s->gate_type] * sizeof(int), 1);
@@ -193,8 +195,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == SETUP_MSG) {
         // regular gates ignore setup messages
         if (s->gate_type == fanout_TYPE) {
-            SWAP(&(s->output_gid[gate_output_size[s->gate_type]]), &(in_msg->id));
-            SWAP(&(s->output_pin[gate_output_size[s->gate_type]]), &(in_msg->value));
+            SWAP(&(s->output_gid[(int)s->internals]), &(in_msg->id));
+            SWAP(&(s->output_pin[(int)s->internals]), &(in_msg->value));
+            s->internals++;
         }
     } else if (in_msg->type == SOURCE_MSG) {
         //Assume node 0 is an input //TODO: Can't assume this with patitioning
@@ -275,8 +278,9 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
     } else if (in_msg->type == SETUP_MSG) {
         if (s->gate_type == fanout_TYPE) {
-            SWAP(&(s->output_gid[gate_output_size[s->gate_type]]), &(in_msg->id));
-            SWAP(&(s->output_pin[gate_output_size[s->gate_type]]), &(in_msg->value));
+            s->internals--;
+            SWAP(&(s->output_gid[(int)s->internals]), &(in_msg->id));
+            SWAP(&(s->output_pin[(int)s->internals]), &(in_msg->value));
         }
     } else if (in_msg->type == SOURCE_MSG) {
         for (i = 0; i < gate_output_size[s->gate_type]; i++) {
