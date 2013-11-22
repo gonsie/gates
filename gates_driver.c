@@ -32,9 +32,9 @@ double latest_ts = 0.0;
 int global_swap_count = 0;
 int error_count = 0;
 
-void SWAP(unsigned int *a, unsigned int *b) {
+void SWAP(int *a, int *b) {
     // a ^= b; b ^= a; a ^= b; 
-    unsigned int temp = *a;
+    int temp = *a;
     *a = *b;
     *b = temp;
     global_swap_count++;
@@ -67,9 +67,8 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->gate_type = type;
 
     // Init inputs
-    s->input_size = gate_input_size[type];
-    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", s->input_size * sizeof(int), 1);
-    for (i = 0; i < s->input_size; i++) {
+    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", gate_input_size[s->gate_type] * sizeof(int), 1);
+    for (i = 0; i < gate_input_size[s->gate_type]; i++) {
         int from_gid;
         assert(1 == sscanf(line, "%d%n", &from_gid, &offset));
         line += offset;
@@ -77,24 +76,19 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
 
     // Init internals
-    s->internal_size = gate_internal_size[type];
-    s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", s->internal_size * sizeof(int), 1);
+    s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", gate_internal_size[s->gate_type] * sizeof(int), 1);
 
     // Init outputs
     if (type == fanout_TYPE) {
-        assert(1 == sscanf(line, "%d%n", &s->output_size, &offset));
+        // HACK fanouts store output size in s->internals
+        assert(1 == sscanf(line, "%d%n", &s->internals, &offset));
         line += offset;
-    } else {
-        s->output_size = gate_output_size[type];
     }
-    s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    s->output_val = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    if (type == fanout_TYPE) {
-        // output has been alloc'd, but not init'd
-        s->output_size = 0;
-    } else {
-        for (i = 0; i < output_size; i++) {
+    s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", gate_output_size[s->gate_type] * sizeof(int), 1);
+    s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", gate_output_size[s->gate_type] * sizeof(int), 1);
+    s->output_val = tw_calloc(TW_LOC, "gates_init_gate_output", gate_output_size[s->gate_type] * sizeof(int), 1);
+    if (type != fanout_TYPE) {
+        for (i = 0; i < gate_output_size[s->gate_type]; i++) {
             int to_gid, to_pin;
             assert(2 == sscanf(line, "%d %d%n", &to_gid, &to_pin, &offset));
             line += offset;
@@ -169,7 +163,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     if (in_msg->type == INIT_MSG) {
         // send messages along input pins, to init fanouts
         // send my gid and pin to receive on
-        for (i = 0; i < s->input_size; i++) {
+        for (i = 0; i < gate_input_size[s->gate_type]; i++) {
             double jitter = (tw_rand_unif(lp->rng)*3);
             double window_start = 6 - tw_now(lp);
             assert (window_start + jitter >= 0.1);
@@ -199,9 +193,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == SETUP_MSG) {
         // regular gates ignore setup messages
         if (s->gate_type == fanout_TYPE) {
-            SWAP(&(s->output_gid[s->output_size]), &(in_msg->id))
-            SWAP(&(s->output_pin[s->output_size]), &(in_msg->value));
-            s->output_size++;
+            SWAP(&(s->output_gid[gate_output_size[s->gate_type]]), &(in_msg->id));
+            SWAP(&(s->output_pin[gate_output_size[s->gate_type]]), &(in_msg->value));
         }
     } else if (in_msg->type == SOURCE_MSG) {
         //Assume node 0 is an input //TODO: Can't assume this with patitioning
@@ -209,7 +202,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             tw_output(lp, "Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
             // printf("Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
         }
-        for (i = 0; i < s->output_size; i++) {
+        for (i = 0; i < gate_output_size[s->gate_type]; i++) {
             double delay = g_tw_lookahead;
             double jitter = (tw_rand_unif(lp->rng)) * (1.0 - (2.0 * MESSAGE_PAD));
             delay = MESSAGE_PAD + jitter;
@@ -238,7 +231,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         SWAP(&(s->inputs[in_pin]), &(in_msg->value));
 
         int changed = function_array[s->gate_type](s->inputs, s->internals, s->output_val);
-        for (i = 0; i < s->output_size; i++){
+        for (i = 0; i < gate_output_size[s->gate_type]; i++){
             float delay = delay_array[s->gate_type](in_pin, i, rising);
             assert(delay >= 0.1);
             tw_event *e = tw_event_new(s->output_gid[i], delay, lp);
@@ -272,7 +265,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     //fflush(stdout);
     assert(in_msg->type >= 0);
     if (in_msg->type == INIT_MSG) {
-        for (i = 0; i < s->input_size; i++) {
+        for (i = 0; i < gate_input_size[s->gate_type]; i++) {
             tw_rand_reverse_unif(lp->rng);
         }
         if (self == 0) {
@@ -282,12 +275,11 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
     } else if (in_msg->type == SETUP_MSG) {
         if (s->gate_type == fanout_TYPE) {
-            s->output_size--;
-            SWAP(&(s->output_gid[s->output_size]), &(in_msg->id))
-            SWAP(&(s->output_pin[s->output_size]), &(in_msg->value));
+            SWAP(&(s->output_gid[gate_output_size[s->gate_type]]), &(in_msg->id));
+            SWAP(&(s->output_pin[gate_output_size[s->gate_type]]), &(in_msg->value));
         }
     } else if (in_msg->type == SOURCE_MSG) {
-        for (i = 0; i < s->output_size; i++) {
+        for (i = 0; i < gate_output_size[s->gate_type]; i++) {
             tw_rand_reverse_unif(lp->rng);
             tw_rand_reverse_unif(lp->rng);
         }
