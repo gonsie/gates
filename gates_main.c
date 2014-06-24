@@ -12,6 +12,7 @@
 #include "run_config.h"
 #include "gates_model.h"
 #include "gate.h"
+#include "chaco_partition.h"
 
 //#define VERIFY_READ 1
 
@@ -45,51 +46,33 @@ int gates_main(int argc, char* argv[]){
     
     if (g_tw_mynode == 0) {
         printf("Gates Configuration:\n\t");
-        printf("X_COUNT = %d * Y_COUNT = %d => COPY_COUNT = %d\n\t", X_COUNT, Y_COUNT, COPY_COUNT);
-        printf("NP_PER_INSTANCE = %d --or-- INSTANCE_PER_NP = %d\n\t", NP_PER_INSTANCE, INSTANCE_PER_NP);
-        printf("TOTAL_GATE_COUNT = %d, LP_COUNT = %d\n", TOTAL_GATE_COUNT, LP_COUNT);
+        // printf("X_COUNT = %d * Y_COUNT = %d => COPY_COUNT = %d\n\t", X_COUNT, Y_COUNT, COPY_COUNT);
+        // printf("NP_PER_INSTANCE = %d --or-- INSTANCE_PER_NP = %d\n\t", NP_PER_INSTANCE, INSTANCE_PER_NP);
+        // printf("TOTAL_GATE_COUNT = %d, LP_COUNT = %d\n", TOTAL_GATE_COUNT, LP_COUNT);
+        printf("TOTAL_GATE_COUNT = %d, GLOBAL_NP_COUNT = %d\n", TOTAL_GATE_COUNT, GLOBAL_NP_COUNT);
         if (WAVE_COUNT) {
             printf("\tWAVE_VIEW Enabled: %d\n", WAVE_COUNT);
         }
     }
     
     g_tw_mapping = CUSTOM;
-    g_tw_custom_initial_mapping = &gates_custom_round_robin_mapping_setup;
-    g_tw_custom_lp_global_to_local_map = &gates_custom_round_robin_mapping_to_local;
+    g_tw_custom_initial_mapping = &gates_chaco_partition_mapping_setup;
+    g_tw_custom_lp_global_to_local_map = &gates_chaco_partition_mapping_to_local;
     
     g_tw_events_per_pe = 600000;
-    g_tw_lookahead = 0.2;
+    g_tw_lookahead = 0.1;
     
     //My kp count
     g_tw_nkp = 64;
     
     //My lp count
-    g_tw_nlp = LP_COUNT;
-    
-    int instnode = 0;
-    if (NP_PER_INSTANCE > 0) {
-        //g_tw_events_per_pe /= NP_PER_INSTANCE;    //you can't have too many events
-        instnode = g_tw_mynode % NP_PER_INSTANCE;
-        if (instnode < EXTRA_LP_COUNT) {
-            g_tw_nlp++;
-        }
-    } else if (INSTANCE_PER_NP > 0){
-        //g_tw_events_per_pe *= INSTANCE_PER_NP;
-        g_tw_nlp *= INSTANCE_PER_NP;
-    } else {
-        printf("Error: Both INSTANCE_PER_NP and NP_PER_INSTANCE are false\n");
-    }
+    g_tw_nlp = partition_lengths[g_tw_mynode];
     
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
     }
     
-    // int fnum = g_tw_mynode % X_COUNT;
-    // char filelead[10] = "/data_";
-    // char fileend[10] = ".vbench";
-    // char filename[100];
-    // sprintf(filename, "%s%d%s", filelead, fnum, fileend);
     char dataname[100] = "/data.vbench";
     char *datapath = dirname(argv[0]);
     strcat(datapath, dataname);
@@ -98,75 +81,54 @@ int gates_main(int argc, char* argv[]){
     if (g_tw_synchronization_protocol == 1) {
         //sequential
         FILE *my_file = fopen(datapath, "r");
-        for (i = 0; i < LP_COUNT; i++) {
+        for (i = 0; i < TOTAL_GATE_COUNT; i++) {
             fgets(global_input[i], LINE_LENGTH+2, my_file);
         }
         fclose(my_file);
     }
-
-    // >=1 instance per MPI Task, each gets the whole file, through a bcast
-    else if (INSTANCE_PER_NP > 0 || NP_PER_INSTANCE <= 1) {
-        //LP_COUNT == TOTAL_GATES == g_tw_nlp
-        if (g_tw_mynode == 0) {
-            MPI_File fh;
-            MPI_Status req;
-            
-            MPI_File_open(MPI_COMM_SELF, datapath, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-            for (i = 0; i < g_tw_nlp; i++) {
-                MPI_File_read_at(fh, i * (LINE_LENGTH - 1), global_input[i], LINE_LENGTH-1, MPI_CHAR, &req);
-            }
-            MPI_File_close(&fh);
-        }
-        
-        //Simple Bcast, no packing
-        for (i = 0; i < g_tw_nlp; i++) {
-            int rc = MPI_Bcast(global_input[i], LINE_LENGTH, MPI_CHAR, 0, MPI_COMM_WORLD);
-            if (rc != MPI_SUCCESS) {
-                printf("BCast faild on %d\n", i);
-            }
-        }
-    }
     
     //MPI_READ on rank 0, scatter around
-    // BLOCK_SIZE is the size of the block of text for any single processor
+    // MAX_BLOCK_SIZE is the max size of the block of text for any single processor
     // the text has been grouped into blocks for each processor
     else {
         // size of text block to be read
-        int BLOCK_SIZE = LP_COUNT * LINE_LENGTH;
-        if (g_tw_mynode < EXTRA_LP_COUNT) {
-            BLOCK_SIZE += LINE_LENGTH;
-        }
-        char *block = (char *) malloc(BLOCK_SIZE);
+        int MAX_BLOCK_SIZE = MAX_LP_COUNT * LINE_LENGTH;
+        char *block = (char *) malloc(MAX_BLOCK_SIZE);
 
         // all reading happens from task 0
         if (g_tw_mynode == 0) {
 
             FILE *f;
             f = fopen(datapath, "r");
-            int MEM_SIZE = BLOCK_SIZE;
 
-            for (i = 0; i < tw_nnodes(); i++) {
-                fread(block, MEM_SIZE, 1, f);
+            // get max block size
+            for (i = 0; i < GLOBAL_NP_COUNT; i++) {
+                int BLOCK_SIZE = partition_lengths[i] * LINE_LENGTH;
+                fread(block, BLOCK_SIZE, 1, f);
                 if (g_tw_mynode == i) {
-                    for (j = 0; j < LP_COUNT + (i < EXTRA_LP_COUNT ? 1 : 0); j++) {
+                    for (j = 0; j < g_tw_nlp; j++) {
                         strncpy(global_input[j], block + (j * LINE_LENGTH), LINE_LENGTH);
                     }
                 } else {
-                    MPI_Send(block, MEM_SIZE, MPI_CHAR, i, 0, MPI_COMM_WORLD);
+                    MPI_Send(block, BLOCK_SIZE, MPI_CHAR, i, 0, MPI_COMM_WORLD);
                 }
-                if ((i+1) == EXTRA_LP_COUNT) {
-                    MEM_SIZE -= LINE_LENGTH;
-                }
+
+                // read blank space
+                BLOCK_SIZE = (MAX_LP_COUNT - partition_lengths[i]) * LINE_LENGTH;
+                if (BLOCK_SIZE > 0) fread(block, BLOCK_SIZE, 1, f);
+                printf("Reading %d lines for node %d (plus %d blanks)\n", partition_lengths[i], i, (MAX_LP_COUNT - partition_lengths[i]));
             }
 
             fclose(f);
             free(block);
         } else {
+            int BLOCK_SIZE = partition_lengths[g_tw_mynode] * LINE_LENGTH;
             MPI_Status req;
             MPI_Recv(block, BLOCK_SIZE, MPI_CHAR, 0, 0, MPI_COMM_WORLD, &req);
-            for (j = 0; j < LP_COUNT + (g_tw_mynode < EXTRA_LP_COUNT ? 1 : 0); j++) {
+            for (j = 0; j < g_tw_nlp; j++) {
                 strncpy(global_input[j], block + (j * LINE_LENGTH), LINE_LENGTH);
             }
+            printf("Rank %d received its block\n", g_tw_mynode);
         }
     }
 

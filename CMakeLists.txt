@@ -10,45 +10,12 @@ ELSE(NOT np)
 ENDIF(NOT np)
 UNSET(np CACHE)
 
-## SYNTHETIC GRID CONFIGURATION
-
-# configure the run for the specified replication (grid based)
-# x
-IF(NOT z)
-       SET(_x 1 CACHE INTERNAL "single width" FORCE)
-ELSE(NOT z)
-	SET(_x ${z} CACHE INTERNAL "multiple width with linking" FORCE)	
-ENDIF(NOT z)
-UNSET(z CACHE)
-
-# y --> use old policy to avoid "True / Yes / y"
-CMAKE_POLICY(SET CMP0012 OLD)
-IF(NOT y)
-    SET(_y 1 CACHE INTERNAL "single height" FORCE)
-ELSE(NOT y)
-    SET(_y ${y} CACHE INTERNAL "multiple height no linking" FORCE)	
-ENDIF(NOT y)
-UNSET(y CACHE)
-
-# calculate duplication run variables
-MATH(EXPR _xy "${_x} * ${_y}")
-IF(${_np} LESS ${_xy})
-# many instances on a single processor
-    MATH(EXPR _inp "${_xy} / ${_np}")
-    SET(_npi 0)
-    SET(_enp 1)
-ELSE(${_np} LESS ${_xy})
-# many processors for a single instance
-    MATH(EXPR _npi "${_np} / ${_xy}") # assume _xy evenly divides _np and _xy > 0
-    SET(_inp 0)
-    SET(_enp ${_npi})
-ENDIF(${_np} LESS ${_xy})
-
 ## DATA FILE
 
 # copy the data file to the build directory
-EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
-    OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
+# EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
+#     OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
+SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/better_partition_ccx_lsi.txt.renumbered.pad.std)
 MESSAGE("${_block_data_file}")
 CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
@@ -60,6 +27,8 @@ EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_BINARY_DIR}/data.vbench
     OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
 STRING(REPLACE " " ";" _outlist ${_output})
 LIST(GET _outlist 0 _ngates)
+SET(_ngates 200981)
+SET(_maxlp 7672)
 
 EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAND wc -c
 	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -86,20 +55,22 @@ UNSET(wave CACHE)
 
 # calculate single instance run variables
 MATH(EXPR _ng "${_ngates}")
-MATH(EXPR _nlp "${_ng}/${_enp}")
-MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_enp})")
+MATH(EXPR _nlp "${_ng}/${_np}")
+MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_np})")
 
 # write the header with variables
-MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tx = ${_x}\n\ty = ${_y}\n\tx*y =  ${_xy}\n\tinp = ${_inp}\n\tinp = ${_npi}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
+MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 SET(gates_srcs
     gates_main.c
     gates_driver.c 
     gates_model.h
-    library_types.h
-    library_functions.c
-    library_lookups.c
+    library.h
+    library.c
+    chaco_partition.h
+    chaco_partition_mapping.c
+    chaco_32.c
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
