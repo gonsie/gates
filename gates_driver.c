@@ -72,7 +72,9 @@ void gates_init(gate_state *s, tw_lp *lp){
         int from_gid;
         assert(1 == sscanf(line, "%d%n", &from_gid, &offset));
         line += offset;
-        s->inputs[i] = from_gid;
+        if (from_gid >= 0) {
+            s->inputs[i] = from_gid;
+        }
     }
 
     // Init internals
@@ -92,10 +94,19 @@ void gates_init(gate_state *s, tw_lp *lp){
     if (type != fanout_TYPE) {
         for (i = 0; i < gate_output_size[s->gate_type]; i++) {
             int to_gid, to_pin;
-            assert(2 == sscanf(line, "%d %d%n", &to_gid, &to_pin, &offset));
+            int c = sscanf(line, "%d %d%n", &to_gid, &to_pin, &offset);
+            if (c != 2) {
+                if (type == input_gate_TYPE) {
+                    break;
+                }
+                printf("ERROR: Gate %d type %d Expected %d inputs and %d output-pairs on line %s\n", self, type, gate_input_size[type], gate_output_size[type], global_input[gate]);
+                assert(c == 2);
+            }
             line += offset;
-            s->output_gid[i] = to_gid;
-            s->output_pin[i] = to_pin;
+            if (to_gid >= 0) {
+                s->output_gid[i] = to_gid;
+                s->output_pin[i] = to_pin;
+            }
         }
     } 
     
