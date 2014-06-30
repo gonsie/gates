@@ -29,12 +29,10 @@ cp -r $1/*.* ./current/
 
 # update symbolic links
 if [ ! -e library_types.h ]; then
-    rm library_types.h
-    ln -s current/*_types.h library_types.h
-    rm library_functions.c
-    ln -s current/*_functions.c library_functions.c
-    rm library_lookups.c
-    ln -s current/*_lookups.c library_lookups.c
+    rm library.h
+    ln -s current/*.h library.h
+    rm library.c
+    ln -s current/*.c library.c
 fi
 
 # deal with data file
