@@ -1,6 +1,8 @@
 import sys
 import os
 
+# Round robin the lines for block reading of round robin LPs
+
 def reorder(filename, npcount):
      filename = os.path.realpath(filename)
      if npcount == 1:
