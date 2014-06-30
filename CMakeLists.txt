@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 
 ## NP
 
@@ -15,7 +15,7 @@ UNSET(np CACHE)
 # copy the data file to the build directory
 # EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
 #     OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
-SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/better_partition_ccx_lsi.txt.renumbered.pad.std)
+SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/better_partition_32_ccx_lsi_gates_sort.txt.renumbered.std)
 MESSAGE("${_block_data_file}")
 CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
@@ -60,7 +60,7 @@ MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_np})")
 
 # write the header with variables
 MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h @ONLY)
 
 SET(gates_srcs
     gates_main.c
@@ -73,11 +73,8 @@ SET(gates_srcs
     chaco_32.c
 )
 
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in
-	PROPERTIES GENERATED false)
-
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h 
-	PROPERTIES GENERATED true)
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in PROPERTIES GENERATED false)
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h PROPERTIES GENERATED true)
  
 ADD_EXECUTABLE(gates ${gates_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
