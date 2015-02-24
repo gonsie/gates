@@ -33,7 +33,7 @@ int global_swap_count = 0;
 int error_count = 0;
 
 void SWAP(int *a, int *b) {
-    // a ^= b; b ^= a; a ^= b; 
+    // a ^= b; b ^= a; a ^= b;
     int temp = *a;
     *a = *b;
     *b = temp;
@@ -47,9 +47,9 @@ void gates_init(gate_state *s, tw_lp *lp){
     s->received_events = 0;
     s->roll_backs = 0;
     s->wave_print = FALSE;
-    
+
     assert(self < TOTAL_GATE_COUNT);
-    
+
     int gid, type;
     int offset;
 
@@ -108,8 +108,8 @@ void gates_init(gate_state *s, tw_lp *lp){
                 s->output_pin[i] = to_pin;
             }
         }
-    } 
-    
+    }
+
     //Setup messages have a staggered arrival btwn 1 and 8
     tw_event *e = tw_event_new(self, 1 + tw_rand_unif(lp->rng)*3, lp);
     message *msg = tw_event_data(e);
@@ -117,7 +117,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     msg->id = -1;
     msg->value = -1;
     tw_event_send(e);
-    
+
     if (s->gate_type == input_gate_TYPE) {
         tw_event *e2 = tw_event_new(self, 10.5, lp);
         message *msg2 = tw_event_data(e2);
@@ -128,7 +128,7 @@ void gates_init(gate_state *s, tw_lp *lp){
     }
 
     //printf("%u is all done! my type is %d\n", self, s->gate_type);
-    
+
 }
 
 tw_stime clock_round(tw_stime now){
@@ -152,27 +152,27 @@ void wave_print(double timestamp, int value, char id) {
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     unsigned int self = lp->gid;
-    
+
     *(int *) bf = (int) 0;
-    
+
 #if DEBUG_TRACE
     fprintf(node_out_file, "FWDE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
     fflush(node_out_file);
 #endif
-    
+
     //printf("Processing event type %d on lp %u\n", in_msg->type, self);
     /*
      if (tw_now(lp) >= 29.2) {
      printf("#%u processing event type %d\n", self, in_msg->type);
      }
      */
-    
+
     s->received_events++;
     if(lp->id == 0 && error_count != 0){
         tw_error(TW_LOC, "ERROR: %d errors detected in init on node %d\n", error_count, g_tw_mynode);
     }
     assert(error_count == 0);
-    
+
     if (in_msg->type == INIT_MSG) {
         // send messages along input pins, to init fanouts
         // send my gid and pin to receive on
@@ -185,7 +185,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             msg->type = SETUP_MSG;
             msg->id = self;
             msg->value = i;
-            tw_event_send(e);            
+            tw_event_send(e);
         }
 
         if (self == 0) {
@@ -228,7 +228,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             msg->value = (tw_rand_unif(lp->rng) < 0.5) ? 0 : 1;
             tw_event_send(e);
         }
-        
+
         tw_event *e = tw_event_new(self, source_interval, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
@@ -247,7 +247,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         int changed = function_array[s->gate_type](s->inputs, s->internals, s->output_val);
         for (i = 0; i < gate_output_size[s->gate_type]; i++){
             float delay = delay_array[s->gate_type](in_pin, i, rising);
-            assert(delay >= 0.1);
+            assert(delay >= 0.01);
             tw_event *e = tw_event_new(s->output_gid[i], delay, lp);
             message *msg = tw_event_data(e);
             msg->type = LOGIC_MSG;
@@ -255,7 +255,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             msg->value = s->output_val[i];
             tw_event_send(e);
         }
-        
+
         if (s->wave_print && changed) {
             // assume OUTPUT_gate type
             wave_print(tw_now(lp), s->inputs[0], s->wave_id);
@@ -272,7 +272,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     unsigned int self = lp->gid;
-    
+
     s->received_events--;
     s->roll_backs++;
     //printf("%u reversing %d\n", self, in_msg->type);
@@ -312,12 +312,12 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else {
         printf("ERROR: could not process reverse message type %d on lp %u\n", in_msg->type, self);
     }
-    
+
 #if DEBUG_TRACE
     fprintf(node_out_file, "REVE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
     fflush(node_out_file);
 #endif
-    
+
 }
 
 void gates_final(gate_state *s, tw_lp *lp){
@@ -326,7 +326,7 @@ void gates_final(gate_state *s, tw_lp *lp){
     if (g_tw_synchronization_protocol == 3) {
         printf("LP %d had %d rollbacks.\n", self, s->roll_backs);
     }
-    
+
     if(FALSE) {
         printf("#%u e%d\n", self, s->received_events);
         fflush(stdout);
@@ -350,11 +350,11 @@ void gates_custom_round_robin_mapping_setup(void){
     int kpid;
     int lpgid, lplid;
     int j;
-    
+
     //Minimum lps per kp, and how many kps have 1 extra lp
     int lps_per_kp = g_tw_nlp / g_tw_nkp;
     int extra_kps = g_tw_nlp - (lps_per_kp * g_tw_nkp);
-    
+
     //The gid of my g_tw_lp[0], round robin stride
     int stride;
     if (NP_PER_INSTANCE > 0) {
@@ -364,30 +364,30 @@ void gates_custom_round_robin_mapping_setup(void){
         g_tw_lp_offset = g_tw_mynode * INSTANCE_PER_NP * TOTAL_GATE_COUNT;
         stride = 1;
     }
-    
+
 #if VERIFY_MAPPING
     printf("Node %d: nlp %d, offset %d, lps_per_kp %d, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, lps_per_kp, extra_kps);
 #endif
-    
+
     //This loop happens once on each pe
     //set starting local and global ids for the LPs on this node
     for (lplid = 0, lpgid = g_tw_lp_offset, pe = NULL; (pe = tw_pe_next(pe)); ) {
-        
+
         //For each kp
         for (kpid = 0; kpid < g_tw_nkp; kpid++) {
-            
+
             tw_kp_onpe(kpid, pe);
-            
+
             //lps on this particular kp
             int nlps = lps_per_kp;
             if (kpid < extra_kps) {
                 nlps++;
             }
-            
+
             for (j = 0; j < nlps; j++, lpgid += stride, lplid++) {
                 tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
-                
+
 #if VERIFY_MAPPING
                 if (0 == j) {
                     printf("PE %d\tKP %d\tLP %d\n", pe->id, kpid, lpgid);
@@ -409,7 +409,7 @@ tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
         assert(id < INSTANCE_PER_NP * TOTAL_GATE_COUNT);
     }
     assert(id >= 0);
-    
+
     return g_tw_lp[id];
 }
 
@@ -458,21 +458,21 @@ void gates_custom_linear_mapping_setup(void){
     int nlp_per_kp;
     int lpid, kpid;
     int i, j;
-    
+
     nlp_per_kp = ceil((double) g_tw_nlp / (double) g_tw_nkp);
     if(!nlp_per_kp) tw_error(TW_LOC, "Not enough KPs defined: %d", g_tw_nkp);
-    
+
     g_tw_lp_offset = (g_tw_mynode * LP_COUNT) + min(g_tw_mynode, EXTRA_LP_COUNT);
-    
+
 #if VERIFY_MAPPING
     printf("Node %d: nlp %lld, offset %lld\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset);
 #endif
-    
+
     for (kpid = 0, lpid = 0, pe = NULL; (pe = tw_pe_next(pe)); ) {
-        
+
         for (i = 0; i < nkp_per_pe; i++, kpid++) {
             tw_kp_onpe(kpid, pe);
-            
+
             for (j = 0; j < nlp_per_kp && lpid < g_tw_nlp; j++, lpid++) {
                 tw_lp_onpe(lpid, pe, g_tw_lp_offset + lpid);
                 tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
@@ -484,11 +484,11 @@ void gates_custom_linear_mapping_setup(void){
             }
         }
     }
-    
+
     if (!g_tw_lp[g_tw_nlp - 1]) {
         tw_error(TW_LOC, "Not all LPs defined! (g_tw_nlp=%d)", g_tw_nlp);
     }
-    
+
     if (g_tw_lp[g_tw_nlp - 1]->gid != g_tw_lp_offset + g_tw_nlp - 1) {
         tw_error(TW_LOC, "LPs not sequentially enumerated!");
     }
@@ -497,9 +497,9 @@ void gates_custom_linear_mapping_setup(void){
 tw_lp * gates_custom_linear_mapping_to_local(tw_lpid lpid){
     assert(lpid >= 0);
     assert(lpid < LP_COUNT * tw_nnodes() + EXTRA_LP_COUNT);
-    
+
     int id = lpid - g_tw_lp_offset;
-    
+
     return g_tw_lp[id];
 }
 */
