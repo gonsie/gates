@@ -244,7 +244,18 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         BOOL rising = (s->inputs[in_pin] < in_msg->value);
         SWAP(&(s->inputs[in_pin]), &(in_msg->value));
 
+        // store current internal pin state
+        if (gate_internal_size[s->gate_type] > 0) {
+            assert(gate_internal_size[s->gate_type] == 2 && "ERROR: internal size != 2");
+            in_msg->internal_pin0 = s->internals[0];
+            in_msg->internal_pin1 = s->internals[1];
+        }
+
         int changed = function_array[s->gate_type](s->inputs, s->internals, s->output_val);
+        if (!changed) {
+            // No output change. event chain dies here
+            return;
+        }
         for (i = 0; i < gate_output_size[s->gate_type]; i++){
             float delay = delay_array[s->gate_type](in_pin, i, rising);
             assert(delay >= 0.01);
@@ -303,6 +314,13 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             return;
         }
         SWAP(&(s->inputs[in_msg->id]), &(in_msg->value));
+
+        // store current internal pin state
+        if (gate_internal_size[s->gate_type] > 0) {
+            assert(gate_internal_size[s->gate_type] == 2 && "ERROR: internal size != 2");
+            s->internals[0] = in_msg->internal_pin0;
+            s->internals[1] = in_msg->internal_pin1;
+        }
 
         reverse_array[s->gate_type](s->inputs, s->internals, s->output_val);
     } else if (in_msg->type == WAVE_MSG) {

@@ -36,6 +36,9 @@ typedef struct {
     int type;
     int id;
     int value;
+    // used for reverse computation of ff/latch
+    int internal_pin0;
+    int internal_pin1;
 } message;
 
 typedef struct {
