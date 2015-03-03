@@ -39,17 +39,17 @@ typedef struct {
 } message;
 
 typedef struct {
-    
+
     //gate specific information
     unsigned int gate_type;
-    
+
     //variables for linking gates
     int* inputs;
     int* internals;
     int* output_gid;
     int* output_pin;
     int* output_val;
-    
+
     //lp stats
     int received_events;
     int roll_backs;
@@ -57,7 +57,7 @@ typedef struct {
     //wave stuffs
     BOOL wave_print;
     char wave_id;
-    
+
 } gate_state;
 
 //Command Line Arguments
