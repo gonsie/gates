@@ -28,22 +28,22 @@ extern unsigned int nkp_per_pe;
 #define gates_main main
 
 int gates_main(int argc, char* argv[]){
-    
+
     int i, j;
-        
+
     tw_opt_add(gates_opts);
     tw_init(&argc, &argv);
-    
+
     if (tw_nnodes() != GLOBAL_NP_COUNT) {
         printf("ERROR: expected %d processors but %d were defined\n", GLOBAL_NP_COUNT, tw_nnodes());
         return 1;
     }
-    
+
     if (WAVE_COUNT != 0 && g_tw_synchronization_protocol > 2) {
         printf("ERROR: Waveform viewing is not supported for non-conservative protocols.\n");
         return 1;
     }
-    
+
     if (g_tw_mynode == 0) {
         printf("Gates Configuration:\n\t");
         // printf("X_COUNT = %d * Y_COUNT = %d => COPY_COUNT = %d\n\t", X_COUNT, Y_COUNT, COPY_COUNT);
@@ -54,29 +54,29 @@ int gates_main(int argc, char* argv[]){
             printf("\tWAVE_VIEW Enabled: %d\n", WAVE_COUNT);
         }
     }
-    
+
     g_tw_mapping = CUSTOM;
     g_tw_custom_initial_mapping = &gates_chaco_partition_mapping_setup;
     g_tw_custom_lp_global_to_local_map = &gates_chaco_partition_mapping_to_local;
-    
+
     g_tw_events_per_pe = 600000;
     g_tw_lookahead = 0.01;
-    
+
     //My kp count
     g_tw_nkp = 64;
-    
+
     //My lp count
     g_tw_nlp = partition_lengths[g_tw_mynode];
-    
+
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
     for (i = 0; i < g_tw_nlp; i++) {
         tw_lp_settype(i, &gates_lps[0]);
     }
-    
+
     char dataname[100] = "/data.vbench";
     char *datapath = dirname(argv[0]);
     strcat(datapath, dataname);
-    
+
     //single processor, single file
     if (g_tw_synchronization_protocol == 1) {
         //sequential
@@ -86,7 +86,7 @@ int gates_main(int argc, char* argv[]){
         }
         fclose(my_file);
     }
-    
+
     //MPI_READ on rank 0, scatter around
     // MAX_BLOCK_SIZE is the max size of the block of text for any single processor
     // the text has been grouped into blocks for each processor
@@ -142,24 +142,24 @@ int gates_main(int argc, char* argv[]){
         printf("Line Last: %s\n", global_input[LP_COUNT-1]);
     }
 #endif
-    
+
     // read the wave file gids
     if (WAVE_COUNT != 0 && g_tw_mynode == 0) {
         char wavename[100] = "/wave.txt";
         char *wavepath = dirname(argv[0]);
         strcat(wavepath, wavename);
-    
+
         FILE *f;
         f = fopen(wavepath, "r");
-        
+
         fseek(f, 0, SEEK_END);
         int w_size = ftell(f);
         fseek(f, 0, SEEK_SET);
-        
+
         char *wave_file = (char *)malloc(w_size);
         fread(wave_file, w_size, 1, f);
         fclose(f);
-        
+
         char * wid;
         char * w_ptr = wave_file;
         i = 0;
@@ -167,7 +167,7 @@ int gates_main(int argc, char* argv[]){
             wave_gids[i] = atoi(wid);
             i++;
         }
-        
+
         free(wave_file);
 
         assert(i == WAVE_COUNT);
@@ -194,8 +194,8 @@ int gates_main(int argc, char* argv[]){
         strcat(outpath, outname);
         wave_out_file = fopen(outpath, "a");
     }
-    
-    
+
+
 #if DEBUG_TRACE
     if (g_tw_mynode == 0) {
         node_out_file = fopen("node_0_output_file.txt","w");
@@ -207,11 +207,11 @@ int gates_main(int argc, char* argv[]){
         node_out_file = fopen("node_4_output_file.txt", "w");
     }
 #endif
-    
+
     tw_run();
 
     tw_end();
-    
+
     return 0;
 }
 
