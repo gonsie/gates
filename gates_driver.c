@@ -152,6 +152,7 @@ void wave_print(double timestamp, int value, char id) {
 void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     unsigned int self = lp->gid;
+    long start_count = lp->rng->count;
 
     *(int *) bf = (int) 0;
 
@@ -239,7 +240,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         int in_pin = in_msg->id;
         if (s->inputs[in_pin] == in_msg->value) {
             // No state change. event chain dies here
-            return;
+            goto unified_exit;
         }
         BOOL rising = (s->inputs[in_pin] < in_msg->value);
         SWAP(&(s->inputs[in_pin]), &(in_msg->value));
@@ -254,7 +255,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         int changed = function_array[s->gate_type](s->inputs, s->internals, s->output_val);
         if (!changed) {
             // No output change. event chain dies here
-            return;
+            goto unified_exit;
         }
         for (i = 0; i < gate_output_size[s->gate_type]; i++){
             float delay = delay_array[s->gate_type](in_pin, i, rising);
@@ -278,6 +279,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else {
         printf("ERROR: could not process message type %d on lp %u\n", in_msg->type, self);
     }
+unified_exit:
+    in_msg->rng_count = lp->rng->count - start_count;
 }
 
 void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
@@ -289,25 +292,11 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     //printf("%u reversing %d\n", self, in_msg->type);
     //fflush(stdout);
     assert(in_msg->type >= 0);
-    if (in_msg->type == INIT_MSG) {
-        for (i = 0; i < gate_input_size[s->gate_type]; i++) {
-            tw_rand_reverse_unif(lp->rng);
-        }
-        if (self == 0) {
-            for (i = 0; i < WAVE_COUNT; i++) {
-                tw_rand_reverse_unif(lp->rng);
-            }
-        }
-    } else if (in_msg->type == SETUP_MSG) {
+    if (in_msg->type == SETUP_MSG) {
         if (s->gate_type == fanout_TYPE) {
             s->internals--;
             SWAP(&(s->output_gid[(int)s->internals]), &(in_msg->id));
             SWAP(&(s->output_pin[(int)s->internals]), &(in_msg->value));
-        }
-    } else if (in_msg->type == SOURCE_MSG) {
-        for (i = 0; i < gate_output_size[s->gate_type]; i++) {
-            tw_rand_reverse_unif(lp->rng);
-            tw_rand_reverse_unif(lp->rng);
         }
     } else if (in_msg->type == LOGIC_MSG) {
         if (s->inputs[in_msg->id] == in_msg->value){
@@ -322,13 +311,17 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             s->internals[1] = in_msg->internal_pin1;
         }
 
-        reverse_array[s->gate_type](s->inputs, s->internals, s->output_val);
     } else if (in_msg->type == WAVE_MSG) {
         if (self != 0){
             SWAP(&(s->wave_print), &(in_msg->value));
         }
     } else {
         printf("ERROR: could not process reverse message type %d on lp %u\n", in_msg->type, self);
+    }
+
+    long count = in_msg->rng_count;
+    while (count--) {
+        tw_rand_reverse_unif(lp->rng);
     }
 
 #if DEBUG_TRACE
