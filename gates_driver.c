@@ -130,7 +130,8 @@ void gates_init(gate_state *s, tw_lp *lp){
     tw_event_send(e);
 
     if (s->gate_type == input_gate_TYPE) {
-        tw_event *e2 = tw_event_new(self, 10.5, lp);
+        double jitter = (tw_rand_unif(lp->rng)) * 0.1;
+        tw_event *e2 = tw_event_new(self, 10.5 + jitter, lp);
         message *msg2 = tw_event_data(e2);
         msg2->type = SOURCE_MSG;
         msg2->id = self;
@@ -246,7 +247,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             }
         }
 
-        tw_event *e = tw_event_new(self, source_interval, lp);
+        double jitter = tw_rand_unif(lp->rng) * 0.1;
+        tw_event *e = tw_event_new(self, source_interval + jitter, lp);
         message *msg = tw_event_data(e);
         msg->type = SOURCE_MSG;
         msg->id = self;
@@ -276,8 +278,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         for (i = 0; i < s->output_size; i++){
             if (s->output_gid[i] >= 0) {
                 float delay = delay_array[s->gate_type](in_pin, i, rising);
-                assert(delay >= g_tw_lookahead);
-                tw_event *e = tw_event_new(s->output_gid[i], delay, lp);
+                double jitter = (tw_rand_unif(lp->rng)) * 0.1;
+                assert(delay + jitter >= g_tw_lookahead);
+                tw_event *e = tw_event_new(s->output_gid[i], delay + jitter, lp);
                 message *msg = tw_event_data(e);
                 msg->type = LOGIC_MSG;
                 msg->id = s->output_pin[i];
