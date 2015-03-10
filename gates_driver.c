@@ -315,8 +315,6 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         if (self != 0){
             SWAP(&(s->wave_print), &(in_msg->value));
         }
-    } else {
-        printf("ERROR: could not process reverse message type %d on lp %u\n", in_msg->type, self);
     }
 
     long count = in_msg->rng_count;
