@@ -221,8 +221,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     } else if (in_msg->type == SETUP_MSG) {
         // regular gates ignore setup messages
         if (s->gate_type == fanout_TYPE) {
-            SWAP(&(s->output_gid[(int)s->internals[0]]), &(in_msg->id));
-            SWAP(&(s->output_pin[(int)s->internals[0]]), &(in_msg->value));
+            SWAP(&(s->output_gid[s->internals[0]]), &(in_msg->id));
+            SWAP(&(s->output_pin[s->internals[0]]), &(in_msg->value));
             s->internals[0]++;
         }
     } else if (in_msg->type == SOURCE_MSG) {
@@ -312,9 +312,9 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     assert(in_msg->type >= 0);
     if (in_msg->type == SETUP_MSG) {
         if (s->gate_type == fanout_TYPE) {
-            s->internals--;
-            SWAP(&(s->output_gid[(int)s->internals]), &(in_msg->id));
-            SWAP(&(s->output_pin[(int)s->internals]), &(in_msg->value));
+            s->internals[0]--;
+            SWAP(&(s->output_gid[s->internals[0]]), &(in_msg->id));
+            SWAP(&(s->output_pin[s->internals[0]]), &(in_msg->value));
         }
     } else if (in_msg->type == LOGIC_MSG) {
         if (s->inputs[in_msg->id] == in_msg->value){
