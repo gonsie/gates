@@ -50,6 +50,7 @@ typedef struct {
     //variables for linking gates
     int* inputs;
     int* internals;
+    int output_size;
     int* output_gid;
     int* output_pin;
     int* output_val;
