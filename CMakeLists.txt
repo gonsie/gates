@@ -68,9 +68,6 @@ SET(gates_srcs
     gates_model.h
     library.h
     library.c
-    chaco_partition.h
-    chaco_partition_mapping.c
-    chaco_32.c
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in PROPERTIES GENERATED false)

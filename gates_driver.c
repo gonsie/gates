@@ -11,7 +11,6 @@
 #include "run_config.h"
 #include "gates_model.h"
 #include "library.h"
-#include "chaco_partition.h"
 
 //exten'd variables
 unsigned int source_interval = 1;

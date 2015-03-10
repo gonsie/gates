@@ -12,7 +12,6 @@
 #include "run_config.h"
 #include "gates_model.h"
 #include "gate.h"
-#include "chaco_partition.h"
 
 //#define VERIFY_READ 1
 
