@@ -350,10 +350,6 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 void gates_final(gate_state *s, tw_lp *lp){
     unsigned int self = lp->gid;
 
-    if (g_tw_synchronization_protocol == 3) {
-        printf("LP %d had %d rollbacks.\n", self, s->roll_backs);
-    }
-
     if(FALSE) {
         printf("#%u e%d\n", self, s->received_events);
         fflush(stdout);
