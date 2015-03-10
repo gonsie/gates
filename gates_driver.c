@@ -179,6 +179,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
      printf("#%u processing event type %d\n", self, in_msg->type);
      }
      */
+    printf("#%u processing event type %d\n", self, in_msg->type);
 
     s->received_events++;
     if(lp->id == 0 && error_count != 0){
@@ -304,11 +305,12 @@ unified_exit:
 void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     int i;
     unsigned int self = lp->gid;
+    long count;
 
     s->received_events--;
     s->roll_backs++;
-    //printf("%u reversing %d\n", self, in_msg->type);
-    //fflush(stdout);
+    printf("%u reversing %d\n", self, in_msg->type);
+    fflush(stdout);
     assert(in_msg->type >= 0);
     if (in_msg->type == SETUP_MSG) {
         if (s->gate_type == fanout_TYPE) {
@@ -318,7 +320,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         }
     } else if (in_msg->type == LOGIC_MSG) {
         if (s->inputs[in_msg->id] == in_msg->value){
-            return;
+            goto unified_exit_rc;
         }
         SWAP(&(s->inputs[in_msg->id]), &(in_msg->value));
 
@@ -334,8 +336,8 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             SWAP(&(s->wave_print), &(in_msg->value));
         }
     }
-
-    long count = in_msg->rng_count;
+unified_exit_rc:
+    count = in_msg->rng_count;
     while (count--) {
         tw_rand_reverse_unif(lp->rng);
     }
@@ -350,7 +352,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 void gates_final(gate_state *s, tw_lp *lp){
     unsigned int self = lp->gid;
 
-    if(FALSE) {
+    if(TRUE) {
         printf("#%u e%d\n", self, s->received_events);
         fflush(stdout);
     }
