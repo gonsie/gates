@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 IF(NOT np)
        SET(_np 1 CACHE INTERNAL "sequential" FORCE)
 ELSE(NOT np)
-	SET(_np ${np} CACHE INTERNAL "parallel number of processors" FORCE)	
+	SET(_np ${np} CACHE INTERNAL "parallel number of processors" FORCE)
 ENDIF(NOT np)
 UNSET(np CACHE)
 
@@ -15,7 +15,7 @@ UNSET(np CACHE)
 # copy the data file to the build directory
 # EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
 #     OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
-SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/better_partition_32_ccx_lsi_gates_sort.txt.renumbered.std)
+SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/data_file_${_np}.lnk)
 MESSAGE("${_block_data_file}")
 CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
 #CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
@@ -64,7 +64,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURC
 
 SET(gates_srcs
     gates_main.c
-    gates_driver.c 
+    gates_driver.c
     gates_model.h
     library.h
     library.c
@@ -75,7 +75,7 @@ SET(gates_srcs
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in PROPERTIES GENERATED false)
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h PROPERTIES GENERATED true)
- 
+
 ADD_EXECUTABLE(gates ${gates_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
 
 TARGET_LINK_LIBRARIES(gates ROSS m)
