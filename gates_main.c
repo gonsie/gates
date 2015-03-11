@@ -118,7 +118,7 @@ int gates_main(int argc, char* argv[]){
                     MPI_Send(block, BLOCK_SIZE, MPI_CHAR, i, 0, MPI_COMM_WORLD);
                 }
 
-                printf("Reading %d lines for node %d\n", partition_lengths[i], i);
+                printf("Reading lines for node %d\n", i);
             }
 
             fclose(f);
