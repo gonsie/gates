@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
+INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 ## NP
 
@@ -60,7 +60,7 @@ MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_np})")
 
 # write the header with variables
 MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h @ONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/run_config.h @ONLY)
 
 SET(gates_srcs
     gates_main.c
@@ -71,9 +71,9 @@ SET(gates_srcs
 )
 
 SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in PROPERTIES GENERATED false)
-SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h PROPERTIES GENERATED true)
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/run_config.h PROPERTIES GENERATED true)
 
-ADD_EXECUTABLE(gates ${gates_srcs} ${CMAKE_CURRENT_SOURCE_DIR}/run_config.h)
+ADD_EXECUTABLE(gates ${gates_srcs} ${CMAKE_CURRENT_BINARY_DIR}/run_config.h)
 
 TARGET_LINK_LIBRARIES(gates ROSS m)
 
