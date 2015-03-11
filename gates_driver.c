@@ -270,11 +270,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             in_msg->internal_pin1 = s->internals[1];
         }
 
-        int changed = function_array[s->gate_type](s->inputs, s->internals, s->output_val);
-        if (!changed) {
-            // No output change. event chain dies here
-            goto unified_exit;
-        }
+        function_array[s->gate_type](s->inputs, s->internals, s->output_val);
         for (i = 0; i < s->output_size; i++){
             if (s->output_gid[i] >= 0) {
                 float delay = delay_array[s->gate_type](in_pin, i, rising);
@@ -289,7 +285,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             }
         }
 
-        if (s->wave_print && changed) {
+        if (s->wave_print) {
             // assume OUTPUT_gate type
             wave_print(tw_now(lp), s->inputs[0], s->wave_id);
         }
