@@ -179,7 +179,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
      printf("#%u processing event type %d\n", self, in_msg->type);
      }
      */
-    printf("#%u processing event type %d\n", self, in_msg->type);
+    //printf("%u processing event %d (%d) rng at %ld at %lf from id %d val %d\n", self, s->received_events, in_msg->type, lp->rng->count, tw_now(lp), in_msg->id, in_msg->value);
 
     s->received_events++;
     if(lp->id == 0 && error_count != 0){
@@ -311,8 +311,8 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 
     s->received_events--;
     s->roll_backs++;
-    printf("%u reversing %d\n", self, in_msg->type);
-    fflush(stdout);
+    //printf("%u reversing %d\n", self, in_msg->type);
+    //fflush(stdout);
     assert(in_msg->type >= 0);
     if (in_msg->type == SETUP_MSG) {
         if (s->gate_type == fanout_TYPE) {
@@ -343,7 +343,7 @@ unified_exit_rc:
     while (count--) {
         tw_rand_reverse_unif(lp->rng);
     }
-
+    //printf("%d un-processed %d (%d) rng at %ld at %lf from id %d val %d\n", self, s->received_events, in_msg->type, lp->rng->count, tw_now(lp), in_msg->id, in_msg->value);
 #if DEBUG_TRACE
     fprintf(node_out_file, "REVE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
     fflush(node_out_file);
