@@ -1,1 +1,1 @@
-current/lsi_10k.h
+current/lsi_10k.lib.h
