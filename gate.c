@@ -6,21 +6,20 @@
 
 #include <stdio.h>
 
-#include "gates_model.h"
-#include "gate.h"
+#include "generic-model.h"
 
 int INPUT_func(vector input, vector output){
     int change_flag = FALSE;
     if (output->array[0].value != input->array[0].value) {
         change_flag = TRUE;
     }
-    
+
     //size is expected to be 1
     int i;
     for (i = 0; i < input->size; i++) {
         output->array[i].value = input->array[i].value;
     }
-    
+
     return change_flag;
 }
 
@@ -29,13 +28,13 @@ int OUTPUT_func(vector input, vector output){
     if (output->array[0].value != input->array[0].value) {
         change_flag = TRUE;
     }
-    
+
     //size is expected to be 1
     int i;
     for (i = 0; i < input->size; i++) {
         output->array[i].value = input->array[i].value;
     }
-    
+
     return change_flag;
 }
 
@@ -44,13 +43,13 @@ int NOT_func(vector input, vector output){
     if (output->array[0].value == input->array[0].value) {
         change_flag = TRUE;
     }
-    
+
     //size is expected to be 1
     int i;
     for(i = 0; i < input->size; i++){
         output->array[i].value = LOGIC_NOT(input->array[i].value);
     }
-    
+
     return change_flag;
 }
 
@@ -59,13 +58,13 @@ int DFF_func(vector input, vector output){
     if (output->array[0].value != input->array[0].value) {
         change_flag = TRUE;
     }
-    
+
     //size is expected to be 1
     int i;
     for (i = 0; i < input->size; i++) {
         output->array[i].value = input->array[i].value;
     }
-    
+
     return change_flag;
 }
 
@@ -128,7 +127,7 @@ int XOR_func(vector input, vector output){
             count++;
         }
     }
-    
+
     if (output->array[0].value != count % 2) {
         output->array[0].value = count % 2;
         return TRUE;

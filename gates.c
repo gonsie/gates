@@ -9,9 +9,8 @@
 #include <assert.h>
 
 #include "ross.h"
-#include "run_config.h"
-#include "gates_model.h"
-#include "gate.h"
+#include "gates-config.h"
+#include "generic-model.h"
 
 //#define VERIFY_READ 1
 

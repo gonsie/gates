@@ -2,7 +2,7 @@
 //October 31, 2015
 //Rensselaer Polytechnic Institute
 
-#include "gates_model.h"
+#include "generic-model.h"
 #include "library.h"
 
 size_t gate_size (gate_state *s, tw_lp *lp) {

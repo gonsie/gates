@@ -9,7 +9,7 @@
 #include <assert.h>
 
 #include "ross.h"
-#include "gates_model.h"
+#include "generic-model.h"
 #include "library.h"
 #include "routing.h"
 

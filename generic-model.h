@@ -8,7 +8,6 @@
 #define _gates_model_h
 
 #include "ross.h"
-#include "run_config.h"
 
 //define logic type and value
 typedef int BOOL;

@@ -8,8 +8,8 @@
 #include <assert.h>
 
 #include "ross.h"
-#include "run_config.h"
-#include "gates_model.h"
+#include "gates-config.h"
+#include "generic-model.h"
 #include "library.h"
 
 //exten'd variables
