@@ -14,8 +14,6 @@
 #include "routing.h"
 
 //#define VERIFY_READ 1
-#define LPS_PER_KP (18)
-#define TOTAL_PARTS (329474)
 
 // Command Line Arguments
 unsigned int module_index = 0;
