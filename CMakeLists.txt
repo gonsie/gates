@@ -26,16 +26,17 @@ ELSE(NOT wave)
 ENDIF(NOT wave)
 UNSET(wave CACHE)
 
-## RUN_CONFIG.H
+## Print GATES Hash
+LIST(APPEND CMAKE_MODULE_PATH "${ROSS_SOURCE_DIR}/cmake/")
+INCLUDE(GetGitRevisionDescription)
+GET_GIT_HEAD_REVISION(GIT_RESPEC_G GIT_SHA1_G)
 
-# calculate single instance run variables
-MATH(EXPR _ng "${_ngates}")
-MATH(EXPR _nlp "${_ng}/${_np}")
-MATH(EXPR _xlp "${_ng} - (${_nlp} * ${_np})")
+## RUN-CONFIG.H
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gates-config.h.in ${CMAKE_CURRENT_BINARY_DIR}/gates-config.h @ONLY)
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/gates-config.h.in PROPERTIES GENERATED FALSE)
+SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/gates-config.h PROPERTIES GENERATED TRUE)
 
-# write the header with variables
-MESSAGE("configure_file\n\tngates = ${_ngates}\n\tline length = ${_ll}\n\tfanout = ${_fanout}\n\tnp = ${_np}\n\tnlp =  ${_nlp}\n\txlp = ${_xlp}")
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/run_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/run_config.h @ONLY)
 
 SET(gates_srcs
     gates_main.c

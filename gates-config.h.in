@@ -1,0 +1,12 @@
+//Elsa Gonsiorowski
+//October 7, 2011
+//Rensselaer Polytechnic Institute
+
+//Configured settings determined at compile time by cmake
+
+#ifndef _gates_config_h
+#define _gates_config_h
+
+#define MODEL_VERSION "@GIT_SHA1_PH@"
+
+#endif
