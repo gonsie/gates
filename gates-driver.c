@@ -356,14 +356,3 @@ void gates_final(gate_state *s, tw_lp *lp){
     }
     return;
 }
-tw_lptype gates_lps[] = {
-    {   (init_f) gates_init,
-        (pre_run_f) NULL,
-        (event_f) gates_event,
-        (revent_f) gates_event_rc,
-        (final_f) gates_final,
-        (map_f) gates_custom_round_robin_mapping_to_pe,
-        sizeof(gate_state)  },
-    { 0 },
-};
-

@@ -21,7 +21,23 @@ const tw_optdef gates_opts[] = {
     TWOPT_END(),
 };
 
-extern unsigned int nkp_per_pe;
+tw_lptype gates_lps[] = {
+    {   (init_f) gates_init,
+        (pre_run_f) NULL,
+        (event_f) gates_event,
+        (revent_f) gates_event_rc,
+        (final_f) gates_final,
+        (map_f) gates_custom_round_robin_mapping_to_pe,
+        sizeof(gate_state)  },
+    { 0 },
+};
+
+io_lptype iolps[] = {
+    {(serialize_f) gate_serialize,
+     (deserialize_f) gate_deserialize,
+     (model_size_f) gate_size},
+    {0},
+};
 
 #define gates_main main
 
