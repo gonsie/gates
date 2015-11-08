@@ -1,12 +1,15 @@
+#include "generic-model.h"
+#include "routing.h"
+
 #define VERIFY_MAPPING 1
 
-tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
+tw_peid gates_custom_mapping_to_pe(tw_lpid gid){
     assert(gid >= 0);
-    assert(gid < TOTAL_GATE_COUNT);
-    return (tw_peid) gid % GLOBAL_NP_COUNT;
+    assert(gid < routing_table_lp[RO_TOTAL]);
+    return 0;
 }
 
-void gates_custom_round_robin_mapping_setup(void){
+void gates_custom_mapping_setup(void){
     tw_pe *pe;
     int kpid;
     int lpgid, lplid;
@@ -54,7 +57,7 @@ void gates_custom_round_robin_mapping_setup(void){
     }
 }
 
-tw_lp * gates_custom_round_robin_mapping_to_local(tw_lpid gid){
+tw_lp * gates_custom_mapping_to_local(tw_lpid gid){
     int id = 0;
     int ins_gid = gid % TOTAL_GATE_COUNT;
     id = ins_gid / GLOBAL_NP_COUNT;

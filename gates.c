@@ -26,7 +26,7 @@ tw_lptype gates_lps[] = {
         (event_f) gates_event,
         (revent_f) gates_event_rc,
         (final_f) gates_final,
-        (map_f) gates_custom_round_robin_mapping_to_pe,
+        (map_f) gates_custom_mapping_to_pe,
         sizeof(gate_state)  },
     { 0 },
 };
@@ -53,8 +53,9 @@ int gates_main(int argc, char* argv[]){
     // }
 
     g_tw_mapping = CUSTOM;
-    g_tw_custom_initial_mapping = &gates_custom_round_robin_mapping_setup;
-    g_tw_custom_lp_global_to_local_map = &gates_custom_round_robin_mapping_to_local;
+    g_tw_custom_initial_mapping = &gates_custom_mapping_setup;
+    g_tw_custom_lp_global_to_local_map = &gates_custom_mapping_to_local;
+    routing_table_mpi = routing_table_mapper(tw_nnodes);
 
     g_tw_events_per_pe = 600000;
     g_tw_lookahead = 0.009;
