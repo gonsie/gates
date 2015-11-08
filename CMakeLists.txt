@@ -1,48 +1,22 @@
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 INCLUDE_DIRECTORIES(${RIO_SOURCE_DIR} ${RIO_BINARY_DIR})
 
-## NP
-
-# configure the run for the specified number of processors
+## DATA FILES
+# configure the run for the specified number of modules
 IF(NOT np)
-       SET(_np 1 CACHE INTERNAL "sequential" FORCE)
+       SET(_np 237 CACHE INTERNAL "OpenSPARC T2 CPU" FORCE)
 ELSE(NOT np)
-	SET(_np ${np} CACHE INTERNAL "parallel number of processors" FORCE)
+    SET(_np ${np} CACHE INTERNAL "Other Project" FORCE)
 ENDIF(NOT np)
 UNSET(np CACHE)
 
-## DATA FILE
-
-# copy the data file to the build directory
-# EXECUTE_PROCESS(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/reorder.py ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk ${_np}
-#     OUTPUT_VARIABLE _block_data_file OUTPUT_STRIP_TRAILING_WHITESPACE)
-SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/data_file_${_np}.lnk)
-MESSAGE("${_block_data_file}")
-CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
-#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_data/gid_ccx_data_np${_enp}.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
-#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gid_ccx_data.vbench ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COPYONLY)
-
-# calculate single instance size
-CMAKE_POLICY(SET CMP0007 OLD)
-EXECUTE_PROCESS(COMMAND wc -l ${CMAKE_CURRENT_BINARY_DIR}/data.vbench
-    OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
-STRING(REPLACE " " ";" _outlist ${_output})
-LIST(GET _outlist 0 _ngates)
-SET(_ngates 200981)
-SET(_maxlp 7672)
-
-EXECUTE_PROCESS(COMMAND head -n 1 ${CMAKE_CURRENT_BINARY_DIR}/data.vbench COMMAND wc -c
-	OUTPUT_VARIABLE _linelen OUTPUT_STRIP_TRAILING_WHITESPACE)
-MATH(EXPR _ll  "${_linelen}")
-
-SET(_grep_str "^\\S* 163 ")
-EXECUTE_PROCESS(COMMAND grep -m 1 ${_grep_str} ${CMAKE_CURRENT_SOURCE_DIR}/data_file.lnk
-    OUTPUT_VARIABLE _output OUTPUT_STRIP_TRAILING_WHITESPACE)
-STRING(REPLACE " " ";" _outlist ${_output})
-LIST(GET _outlist 0 _fanout)
+FOREACH(_i RANGE ${_np})
+    # copy the data file to the build directory
+    SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/datafile-${_i}.lnk)
+    CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data-${_i}.vbench COPYONLY)
+ENDFOREACH(_i)
 
 ## WAVE FILES
-
 # if specified, copy the wave data file to build directory
 IF(NOT wave)
     SET(_wc 0 CACHE INTERNAL "no waves" FORCE)
