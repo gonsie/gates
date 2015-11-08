@@ -48,15 +48,10 @@ int gates_main(int argc, char* argv[]){
     tw_opt_add(gates_opts);
     tw_init(&argc, &argv);
 
-    if (tw_nnodes() != GLOBAL_NP_COUNT) {
-        printf("ERROR: expected %d processors but %d were defined\n", GLOBAL_NP_COUNT, tw_nnodes());
-        return 1;
-    }
-
-    if (WAVE_COUNT != 0 && g_tw_synchronization_protocol > 2) {
-        printf("ERROR: Waveform viewing is not supported for non-conservative protocols.\n");
-        return 1;
-    }
+    // if (WAVE_COUNT != 0 && g_tw_synchronization_protocol > 2) {
+    //     printf("ERROR: Waveform viewing is not supported for non-conservative protocols.\n");
+    //     return 1;
+    // }
 
     if (g_tw_mynode == 0) {
         printf("Gates Configuration:\n\t");
