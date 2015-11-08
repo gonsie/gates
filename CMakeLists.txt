@@ -40,19 +40,22 @@ SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_BINARY_DIR}/gates-config.h PROPERTIE
 
 SET(gates_srcs
     gates-config.h
-    gates_main.c
-    gates_driver.c
-    gates_model.h
+    gates.c
+    gates-driver.c
+    gates-rio.c
+    generic-model.h
     library.h
     library.c
+    routing.h
+    routing.c
 )
 ADD_EXECUTABLE(gates ${gates_srcs})
 TARGET_LINK_LIBRARIES(gates ROSS RIO m)
 
 SET(module_loader_srcs
-    module_main.c
-    gates_model.h
-    gate_rio.c
+    module-loader.c
+    generic-model.h
+    gates-rio.c
     library.h
     library.c
     routing.h

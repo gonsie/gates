@@ -350,14 +350,14 @@ unified_exit_rc:
 void gates_final(gate_state *s, tw_lp *lp){
     unsigned int self = lp->gid;
 
-    if(TRUE) {
+    if(FALSE) {
         printf("#%u e%d\n", self, s->received_events);
         fflush(stdout);
     }
     return;
 }
 
-//#define VERIFY_MAPPING 1
+#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_round_robin_mapping_to_pe(tw_lpid gid){
     assert(gid >= 0);
