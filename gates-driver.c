@@ -8,16 +8,9 @@
 #include <assert.h>
 
 #include "ross.h"
-#include "gates-config.h"
 #include "generic-model.h"
 #include "library.h"
-
-//exten'd variables
-unsigned int source_interval = 1;
-unsigned int sink_interval = 5;
-
-char global_input[LP_COUNT+1][LINE_LENGTH + 1];
-int wave_gids[WAVE_COUNT];
+#include "routing.h"
 
 // #define DEBUG_TRACE 1
 #if DEBUG_TRACE
