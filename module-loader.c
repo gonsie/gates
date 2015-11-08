@@ -113,7 +113,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
             total_offset += offset;
             if (strncmp(line, ".", 1) == 0) {
                 sscanf(line+1, "%d %n", &from_gid, &offset);
-                from_gid += routing_table[module];
+                from_gid += routing_table_lp[module];
 #if VERIFY_READ
                 printf("routing %d, ", from_gid);
 #endif
@@ -124,7 +124,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
                 from_gid = module;
             }
             if (from_gid >= 0) {
-                s->inputs[i] = routing_table[module_index] + from_gid;
+                s->inputs[i] = routing_table_lp[module_index] + from_gid;
             }
         }
     }
@@ -173,9 +173,9 @@ void gate_init(gate_state *s, tw_lp *lp) {
         if (strncmp(line, ".", 1) == 0) {
             sscanf(line+1, "%d %n", &to_gid, &offset);
 #if VERIFY_READ
-            printf("ROUTE %d (%d)", to_gid, routing_table[module]);
+            printf("ROUTE %d (%d)", to_gid, routing_table_lp[module]);
 #endif
-            to_gid += routing_table[module];
+            to_gid += routing_table_lp[module];
             line += offset+1;
             global_datafile_offset += offset+1;
             total_offset += offset+1;
@@ -294,7 +294,7 @@ int module_loader_main(int argc, char* argv[]){
     module_index += g_tw_mynode;
     printf("Rank %ld loading Module %d\n", g_tw_mynode, module_index);
 
-    g_tw_nlp = routing_table[module_index+1] - routing_table[module_index];
+    g_tw_nlp = routing_table_lp[module_index+1] - routing_table_lp[module_index];
     g_tw_nkp = g_tw_nlp / LPS_PER_KP;
 
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
