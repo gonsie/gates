@@ -59,7 +59,10 @@ int gates_main(int argc, char* argv[]){
 
     g_tw_lp_offset = (*routing_table_mpi)[g_tw_mynode];
     g_tw_nlp = (*routing_table_mpi)[g_tw_mynode+1] - g_tw_lp_offset;
-    g_tw_nkp = g_tw_nlp / LPS_PER_KP;
+    g_tw_nkp = TOTAL_PARTS / tw_nnodes();
+    if (g_tw_mynode < TOTAL_PARTS - (g_tw_nkp * tw_nnodes())) {
+        g_tw_nkp++;
+    }
 
     g_tw_events_per_pe = 600000;
     g_tw_lookahead = 0.009;
