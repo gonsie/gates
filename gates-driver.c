@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "ross.h"
 #include "generic-model.h"
 #include "library.h"
 #include "routing.h"
@@ -23,6 +22,8 @@ double latest_ts = 0.0;
 
 int global_swap_count = 0;
 int error_count = 0;
+
+int source_interval = 2;
 
 void SWAP(int *a, int *b) {
     // a ^= b; b ^= a; a ^= b;
