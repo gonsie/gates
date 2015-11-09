@@ -72,7 +72,6 @@ int gates_main(int argc, char* argv[]){
     g_io_events_buffered_per_rank = 0;
     io_init_local(g_tw_nkp);
 
-
     tw_run();
 
     tw_end();
