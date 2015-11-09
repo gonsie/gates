@@ -12,8 +12,8 @@ UNSET(np CACHE)
 
 FOREACH(_i RANGE ${_np})
     # copy the data file to the build directory
-    SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/datafile-${_i}.lnk)
-    CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data-${_i}.vbench COPYONLY)
+    SET(_block_data_file ${CMAKE_CURRENT_SOURCE_DIR}/data/data-${_i}.vbench)
+    CONFIGURE_FILE(${_block_data_file} ${CMAKE_CURRENT_BINARY_DIR}/data/data-${_i}.vbench COPYONLY)
 ENDFOREACH(_i)
 
 ## WAVE FILES
