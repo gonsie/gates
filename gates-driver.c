@@ -34,88 +34,8 @@ void SWAP(int *a, int *b) {
     global_swap_count++;
 }
 
-void gates_init(gate_state *s, tw_lp *lp){
-    unsigned int self = lp->gid;
-    unsigned int gate = lp->id;
-    int i;
-    s->received_events = 0;
-    s->roll_backs = 0;
-    s->wave_print = FALSE;
-
-    assert(self < TOTAL_GATE_COUNT);
-
-    int gid, type;
-    int offset;
-
-    char* line = global_input[gate];
-    int count = sscanf(line, "%d %d %n", &gid, &type, &offset);
-    line += offset;
-
-    if (count != 2) {
-        printf("Error on %d from reading: \"%s\"\n", self, global_input[gate]);
-        error_count++;
-    }
-
-    assert(gid == self);
-
-    s->gate_type = type;
-
-    // Init inputs
-    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", gate_input_size[s->gate_type] * sizeof(int), 1);
-    for (i = 0; i < gate_input_size[s->gate_type]; i++) {
-        int from_gid;
-        assert(1 == sscanf(line, "%d%n", &from_gid, &offset));
-        line += offset;
-        if (from_gid >= 0) {
-            s->inputs[i] = from_gid;
-        }
-    }
-
-    // Init internals
-
-
-    // Init outputs
-    s->output_size = 0;
-    if (type == fanout_TYPE) {
-        // HACK fanouts store output size in s->internals
-        assert(1 == sscanf(line, "%d%n", &s->output_size, &offset));
-        line += offset;
-        s->internals = tw_calloc(TW_LOC, "fanout init", 1 * sizeof(int), 1);
-        s->internals[0] = 0;
-    } else {
-        s->output_size = gate_output_size[s->gate_type];
-        s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", gate_internal_size[s->gate_type] * sizeof(int), 1);
-    }
-
-    s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    s->output_val = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    for (i = 0; i < s->output_size; i++) {
-        s->output_gid[i] = -1;
-        s->output_pin[i] = -1;
-        s->output_val[i] = -1;
-    }
-
-
-    if (type != fanout_TYPE) {
-        for (i = 0; i < s->output_size; i++) {
-            int to_gid, to_pin;
-            int c = sscanf(line, "%d %d%n", &to_gid, &to_pin, &offset);
-            if (c != 2) {
-                if (type == input_gate_TYPE) {
-                    break;
-                }
-                printf("ERROR: Gate %d type %d Expected %d inputs and %d output-pairs on line %s\n", self, type, gate_input_size[type], gate_output_size[type], global_input[gate]);
-                assert(c == 2);
-            }
-            line += offset;
-            if (to_gid >= 0) {
-                s->output_gid[i] = to_gid;
-                s->output_pin[i] = to_pin;
-            }
-        }
-    }
-
+void gates_init(gate_state *s, tw_lp *lp) {
+    int self = lp->gid;
     //Setup messages have a staggered arrival btwn 1 and 8
     tw_event *e = tw_event_new(self, 1 + tw_rand_unif(lp->rng)*3, lp);
     message *msg = tw_event_data(e);
@@ -133,9 +53,6 @@ void gates_init(gate_state *s, tw_lp *lp){
         msg2->value = -1;
         tw_event_send(e2);
     }
-
-    //printf("%u is all done! my type is %d\n", self, s->gate_type);
-
 }
 
 tw_stime clock_round(tw_stime now){
