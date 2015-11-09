@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "gates-config.h"
 #include "generic-model.h"
 #include "library.h"
 #include "routing.h"
@@ -204,7 +205,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
                 double jitter = (tw_rand_unif(lp->rng)*2);
                 double window_start = 4 - tw_now(lp);
                 assert (window_start + jitter >= g_tw_lookahead);
-                tw_event *w = tw_event_new(wave_gids[i], window_start + jitter, lp);
+                tw_event *w = tw_event_new(-1, window_start + jitter, lp); // TODO: FIX ME
                 message *wm = tw_event_data(w);
                 wm->type = WAVE_MSG;
                 // wave id (ascii value)

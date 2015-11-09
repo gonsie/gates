@@ -8,5 +8,6 @@
 #define _gates_config_h
 
 #define MODEL_VERSION "@GIT_SHA1_G@"
+#define WAVE_COUNT (0)
 
 #endif
