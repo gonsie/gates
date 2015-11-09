@@ -57,8 +57,8 @@ int gates_main(int argc, char* argv[]){
     g_tw_custom_lp_global_to_local_map = &gates_custom_mapping_to_local;
     routing_table_mpi = routing_table_mapper(tw_nnodes());
 
-    g_tw_nlp = (*routing_table_mpi)[g_tw_mynode+1];
     g_tw_lp_offset = (*routing_table_mpi)[g_tw_mynode];
+    g_tw_nlp = (*routing_table_mpi)[g_tw_mynode+1] - g_tw_lp_offset;
     g_tw_nkp = g_tw_nlp / LPS_PER_KP;
 
     g_tw_events_per_pe = 600000;
