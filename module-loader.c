@@ -243,7 +243,7 @@ void module_loader_mapping_setup(void){
         }
 
         for (i = 0; i < lps_on_kp; i++, lpid++) {
-            tw_lp_onpe(lpid, pe, lpid);
+            tw_lp_onpe(lpid, pe, lpid + g_tw_lp_offset);
             tw_lp_onkp(g_tw_lp[lpid], g_tw_kp[kpid]);
         }
     }
@@ -294,7 +294,8 @@ int module_loader_main(int argc, char* argv[]){
     module_index += g_tw_mynode;
     printf("Rank %ld loading Module %d\n", g_tw_mynode, module_index);
 
-    g_tw_nlp = routing_table_lp[module_index+1] - routing_table_lp[module_index];
+    g_tw_lp_offset = routing_table_lp[module_index];
+    g_tw_nlp = routing_table_lp[module_index+1] - g_tw_lp_offset;
     g_tw_nkp = g_tw_nlp / LPS_PER_KP;
 
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
