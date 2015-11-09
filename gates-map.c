@@ -22,7 +22,6 @@ void gates_custom_mapping_setup(void){
     int j;
 
     //PARTS MAPPING
-    g_tw_nkp = g_tw_nlp / LPS_PER_KP;
     int extra_kps = g_tw_nlp - (g_tw_nkp * LPS_PER_KP);
 
 #if VERIFY_MAPPING

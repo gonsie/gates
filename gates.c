@@ -10,6 +10,7 @@
 
 #include "gates-config.h"
 #include "generic-model.h"
+#include "routing.h"
 
 //#define VERIFY_READ 1
 int ** routing_table_mpi;
@@ -58,7 +59,7 @@ int gates_main(int argc, char* argv[]){
 
     g_tw_nlp = (*routing_table_mpi)[g_tw_mynode+1];
     g_tw_lp_offset = (*routing_table_mpi)[g_tw_mynode];
-    // g_tw_nkp is set by gates_custom_mapping_setup
+    g_tw_nkp = g_tw_nlp / LPS_PER_KP;
 
     g_tw_events_per_pe = 600000;
     g_tw_lookahead = 0.009;
