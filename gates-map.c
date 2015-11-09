@@ -1,12 +1,18 @@
+#include <assert.h>
 #include "generic-model.h"
 #include "routing.h"
 
 #define VERIFY_MAPPING 1
 
 tw_peid gates_custom_mapping_to_pe(tw_lpid gid){
-    assert(gid >= 0);
-    assert(gid < routing_table_lp[RO_TOTAL]);
-    return 0;
+    assert(gid < routing_table_lp[RO_TOTAL+1]);
+    int i;
+    for (i = 0; i < tw_nnodes(); i++) {
+        if (gid < (*routing_table_mpi)[i+1]) {
+            return i;
+        }
+    }
+    tw_error(TW_LOC, "ERROR: can't map gid %llu to a PE", gid);
 }
 
 void gates_custom_mapping_setup(void){
@@ -15,17 +21,12 @@ void gates_custom_mapping_setup(void){
     int lpgid, lplid;
     int j;
 
-    //Minimum lps per kp, and how many kps have 1 extra lp
-    int lps_per_kp = g_tw_nlp / g_tw_nkp;
-    int extra_kps = g_tw_nlp - (lps_per_kp * g_tw_nkp);
-
-    //The gid of my g_tw_lp[0], round robin stride
-    int stride;
-    g_tw_lp_offset = ((g_tw_mynode / GLOBAL_NP_COUNT) * TOTAL_GATE_COUNT) + (g_tw_mynode % GLOBAL_NP_COUNT);
-    stride = GLOBAL_NP_COUNT;
+    //PARTS MAPPING
+    g_tw_nkp = g_tw_nlp / LPS_PER_KP;
+    int extra_kps = g_tw_nlp - (g_tw_nkp * LPS_PER_KP);
 
 #if VERIFY_MAPPING
-    printf("Node %d: nlp %d, offset %d, lps_per_kp %d, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, lps_per_kp, extra_kps);
+    printf("Node %ld: nlp %llu, offset %llu, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, extra_kps);
 #endif
 
     //This loop happens once on each pe
@@ -38,18 +39,18 @@ void gates_custom_mapping_setup(void){
             tw_kp_onpe(kpid, pe);
 
             //lps on this particular kp
-            int nlps = lps_per_kp;
+            int nlps = LPS_PER_KP;
             if (kpid < extra_kps) {
                 nlps++;
             }
 
-            for (j = 0; j < nlps; j++, lpgid += stride, lplid++) {
+            for (j = 0; j < nlps; j++, lpgid++, lplid++) {
                 tw_lp_onpe(lplid, pe, lpgid);
                 tw_lp_onkp(g_tw_lp[lplid], g_tw_kp[kpid]);
 
 #if VERIFY_MAPPING
                 if (0 == j) {
-                    printf("PE %d\tKP %d\tLP %d\n", pe->id, kpid, lpgid);
+                    printf("PE %lu\tKP %d\tLP %d\n", pe->id, kpid, lpgid);
                 }
 #endif
             }
@@ -58,11 +59,11 @@ void gates_custom_mapping_setup(void){
 }
 
 tw_lp * gates_custom_mapping_to_local(tw_lpid gid){
-    int id = 0;
-    int ins_gid = gid % TOTAL_GATE_COUNT;
-    id = ins_gid / GLOBAL_NP_COUNT;
-    assert(id < LP_COUNT + 1);
-    assert(id >= 0);
+    assert(gid < routing_table_lp[RO_TOTAL+1]);
+
+    int id = gid - g_tw_lp_offset;
+    assert(id >= (*routing_table_mpi)[g_tw_mynode]);
+    assert(id < (*routing_table_mpi)[g_tw_mynode+1]);
 
     return g_tw_lp[id];
 }

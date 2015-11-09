@@ -55,22 +55,22 @@ int gates_main(int argc, char* argv[]){
     g_tw_custom_lp_global_to_local_map = &gates_custom_mapping_to_local;
     routing_table_mpi = routing_table_mapper(tw_nnodes());
 
+    g_tw_nlp = (*routing_table_mpi)[g_tw_mynode+1];
+    g_tw_lp_offset = (*routing_table_mpi)[g_tw_mynode];
+    // g_tw_nkp is set by gates_custom_mapping_setup
+
     g_tw_events_per_pe = 600000;
     g_tw_lookahead = 0.009;
 
-    //My kp count
-    g_tw_nkp = 64;
-
-    //My lp count
-    g_tw_nlp = LP_COUNT;
-    if (g_tw_mynode < EXTRA_LP_COUNT) {
-        g_tw_nlp++;
-    }
-
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
-    for (i = 0; i < g_tw_nlp; i++) {
-        tw_lp_settype(i, &gates_lps[0]);
-    }
+
+    g_tw_lp_types = gates_lps;
+    g_io_lp_types = iolps;
+    tw_lp_setup_types();
+
+    g_io_events_buffered_per_rank = 0;
+    io_init_local(g_tw_nkp);
+
 
     tw_run();
 
