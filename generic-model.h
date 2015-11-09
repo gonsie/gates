@@ -106,7 +106,8 @@ extern int gate_output_size[];
 // defined in routing.c
 extern int routing_table_lp[];
 extern int routing_table_kp[];
-extern int ** routing_table_mpi;
-int ** routing_table_mapper(int np);
+typedef int (*intarrptr)[];
+extern intarrptr routing_table_mpi;
+intarrptr routing_table_mapper(int np);
 
 #endif

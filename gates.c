@@ -13,7 +13,7 @@
 #include "routing.h"
 
 //#define VERIFY_READ 1
-int ** routing_table_mpi;
+intarrptr routing_table_mpi;
 
 const tw_optdef gates_opts[] = {
     TWOPT_GROUP("Gates Model"),
