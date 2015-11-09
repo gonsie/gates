@@ -326,7 +326,7 @@ int module_loader_main(int argc, char* argv[]){
         sprintf(checkpointname, "module-%03d.checkpoint", file_num);
         io_store_multiple_partitions(checkpointname, 0, 0);
     } else {
-        io_store_multiple_partitions("submodule-checkpoint", 1, file_num);
+        io_store_multiple_partitions("checkpoint/submodule-checkpoint", 1, file_num);
     }
 
     tw_end();
