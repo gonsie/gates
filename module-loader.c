@@ -309,7 +309,7 @@ int module_loader_main(int argc, char* argv[]){
     char dataname[100];
     char *datapath = dirname(argv[0]);
     int file_num = g_tw_mynode+module_index;
-    sprintf(dataname, "%s/data-%d.vbench", datapath, file_num);
+    sprintf(dataname, "%s/data/data-%d.vbench", datapath, file_num);
 
     // each rank reads its own file
     global_datafile_handle = fopen(dataname, "r");
