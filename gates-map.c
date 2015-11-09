@@ -2,7 +2,7 @@
 #include "generic-model.h"
 #include "routing.h"
 
-#define VERIFY_MAPPING 1
+//#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_mapping_to_pe(tw_lpid gid){
     assert(gid < routing_table_lp[RO_TOTAL+1]);
