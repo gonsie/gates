@@ -5,7 +5,7 @@
 //#define VERIFY_MAPPING 1
 
 tw_peid gates_custom_mapping_to_pe(tw_lpid gid){
-    assert(gid < routing_table_lp[RO_TOTAL+1]);
+    assert(gid < routing_table_lp[RO_TOTAL]);
     int i;
     for (i = 0; i < tw_nnodes(); i++) {
         if (gid < (*routing_table_mpi)[i+1]) {
@@ -58,11 +58,9 @@ void gates_custom_mapping_setup(void){
 }
 
 tw_lp * gates_custom_mapping_to_local(tw_lpid gid){
-    assert(gid < routing_table_lp[RO_TOTAL+1]);
-
+    assert(gid < routing_table_lp[RO_TOTAL]);
+    assert(gid >= (*routing_table_mpi)[g_tw_mynode]);
+    assert(gid < (*routing_table_mpi)[g_tw_mynode+1]);
     int id = gid - g_tw_lp_offset;
-    assert(id >= (*routing_table_mpi)[g_tw_mynode]);
-    assert(id < (*routing_table_mpi)[g_tw_mynode+1]);
-
     return g_tw_lp[id];
 }
