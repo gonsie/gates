@@ -314,7 +314,7 @@ int module_loader_main(int argc, char* argv[]){
     // each rank reads its own file
     global_datafile_handle = fopen(dataname, "r");
     if (global_datafile_handle == NULL) {
-        TW_ERROR(TW_LOC, "ERROR: can't open file %s err# %d\n", dataname, errno);
+        tw_error(TW_LOC, "ERROR: can't open file %s err# %d\n", dataname, errno);
     }
 
     tw_run();
