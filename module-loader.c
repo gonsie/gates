@@ -101,7 +101,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
             global_datafile_offset += offset;
             total_offset += offset;
             // TODO: some how mark this as not a GID
-            s->inputs[i] = constant;
+            s->inputs[i] = -100*constant;
         } else {
             int module, from_gid;
             sscanf(line, "%d %n", &module, &offset);
@@ -114,6 +114,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
             if (strncmp(line, ".", 1) == 0) {
                 sscanf(line+1, "%d %n", &from_gid, &offset);
                 from_gid += routing_table_lp[module];
+                assert(from_gid < routing_table_lp[RO_TOTAL]);
 #if VERIFY_READ
                 printf("routing %d, ", from_gid);
 #endif
@@ -121,10 +122,14 @@ void gate_init(gate_state *s, tw_lp *lp) {
                 global_datafile_offset += offset+1;
                 total_offset += offset+1;
             } else {
-                from_gid = module;
+                // NO MODULE ROUTING FOUND
+                // GID is in current module
+                from_gid = module + routing_table_lp[module_index];
+                assert(from_gid < routing_table_lp[RO_TOTAL]);
             }
             if (from_gid >= 0) {
-                s->inputs[i] = routing_table_lp[module_index] + from_gid;
+                s->inputs[i] = from_gid;
+                assert(s->inputs[i] < routing_table_lp[RO_TOTAL]);
             }
         }
     }
@@ -176,6 +181,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
             printf("ROUTE %d (%d)", to_gid, routing_table_lp[module]);
 #endif
             to_gid += routing_table_lp[module];
+            assert(to_gid < routing_table_lp[RO_TOTAL]);
             line += offset+1;
             global_datafile_offset += offset+1;
             total_offset += offset+1;
@@ -192,6 +198,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
         total_offset += offset;
         if (to_gid >= 0) {
             s->output_gid[i] = to_gid;
+            assert(to_gid < routing_table_lp[RO_TOTAL]);
             s->output_pin[i] = to_pin;
         }
     }
