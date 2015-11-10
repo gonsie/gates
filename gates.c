@@ -64,7 +64,7 @@ int gates_main(int argc, char* argv[]){
         g_tw_nkp++;
     }
 
-    g_tw_events_per_pe = 600000;
+    g_tw_events_per_pe = 100*g_tw_nlp;
     g_tw_lookahead = 0.009;
 
     tw_define_lps(g_tw_nlp, sizeof(message), 0);
