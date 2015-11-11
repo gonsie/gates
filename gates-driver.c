@@ -121,6 +121,9 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
         msg->value = -1;
         tw_event_send(e);
     } else if (in_msg->type == LOGIC_MSG) {
+        if (s->gate_type == mega_gate_TYPE) {
+            goto unified_exit;
+        }
         int in_pin = in_msg->id;
         if (s->inputs[in_pin] == in_msg->value) {
             // No state change. event chain dies here
@@ -177,6 +180,9 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     //fflush(stdout);
     assert(in_msg->type >= 0);
     if (in_msg->type == LOGIC_MSG) {
+        if (s->gate_type == mega_gate_TYPE) {
+            goto unified_exit_rc;
+        }
         if (s->inputs[in_msg->id] == in_msg->value){
             goto unified_exit_rc;
         }
