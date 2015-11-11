@@ -36,17 +36,10 @@ void SWAP(int *a, int *b) {
 
 void gates_init(gate_state *s, tw_lp *lp) {
     int self = lp->gid;
-    //Setup messages have a staggered arrival btwn 1 and 8
-    tw_event *e = tw_event_new(self, 1 + tw_rand_unif(lp->rng)*3, lp);
-    message *msg = tw_event_data(e);
-    msg->type = INIT_MSG;
-    msg->id = -1;
-    msg->value = -1;
-    tw_event_send(e);
 
     if (s->gate_type == input_gate_TYPE) {
         double jitter = (tw_rand_unif(lp->rng)) * 0.1;
-        tw_event *e2 = tw_event_new(self, 10.5 + jitter, lp);
+        tw_event *e2 = tw_event_new(self, 1 + jitter, lp);
         message *msg2 = tw_event_data(e2);
         msg2->type = SOURCE_MSG;
         msg2->id = self;
@@ -99,46 +92,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     }
     assert(error_count == 0);
 
-    if (in_msg->type == INIT_MSG) {
-        // send messages along input pins, to init fanouts
-        // send my gid and pin to receive on
-        for (i = 0; i < gate_input_size[s->gate_type]; i++) {
-            if (s->inputs[i] >= 0) {
-                double jitter = (tw_rand_unif(lp->rng)*3);
-                double window_start = 6 - tw_now(lp);
-                assert (window_start + jitter >= g_tw_lookahead);
-                tw_event *e = tw_event_new(s->inputs[i], window_start + jitter, lp);
-                message *msg = tw_event_data(e);
-                msg->type = SETUP_MSG;
-                msg->id = self;
-                msg->value = i;
-                tw_event_send(e);
-            }
-        }
-
-        if (self == 0) {
-            // LP 0 is specially designated to inform of wave printing (wave_gid array filled on node 0)
-            for (i = 0; i < WAVE_COUNT; i++) {
-                double jitter = (tw_rand_unif(lp->rng)*2);
-                double window_start = 4 - tw_now(lp);
-                assert (window_start + jitter >= g_tw_lookahead);
-                tw_event *w = tw_event_new(-1, window_start + jitter, lp); // TODO: FIX ME
-                message *wm = tw_event_data(w);
-                wm->type = WAVE_MSG;
-                // wave id (ascii value)
-                wm->id = 33 + i;
-                wm->value = TRUE;
-                tw_event_send(w);
-            }
-        }
-    } else if (in_msg->type == SETUP_MSG) {
-        // regular gates ignore setup messages
-        if (s->gate_type == fanout_TYPE) {
-            SWAP(&(s->output_gid[s->internals[0]]), &(in_msg->id));
-            SWAP(&(s->output_pin[s->internals[0]]), &(in_msg->value));
-            s->internals[0]++;
-        }
-    } else if (in_msg->type == SOURCE_MSG) {
+    if (in_msg->type == SOURCE_MSG) {
         //Assume node 0 is an input //TODO: Can't assume this with patitioning
         if (self == 0) {
             tw_output(lp, "Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
@@ -222,13 +176,7 @@ void gates_event_rc(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     //printf("%u reversing %d\n", self, in_msg->type);
     //fflush(stdout);
     assert(in_msg->type >= 0);
-    if (in_msg->type == SETUP_MSG) {
-        if (s->gate_type == fanout_TYPE) {
-            s->internals[0]--;
-            SWAP(&(s->output_gid[s->internals[0]]), &(in_msg->id));
-            SWAP(&(s->output_pin[s->internals[0]]), &(in_msg->value));
-        }
-    } else if (in_msg->type == LOGIC_MSG) {
+    if (in_msg->type == LOGIC_MSG) {
         if (s->inputs[in_msg->id] == in_msg->value){
             goto unified_exit_rc;
         }
