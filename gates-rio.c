@@ -71,7 +71,7 @@ void gate_deserialize (gate_state *s, void *buffer, tw_lp *lp) {
 
 	// DO INTERNALS FIRST
 	// s->internals array
-	s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", gate_internal_size[s->gate_type] * sizeof(int), 1);
+	s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(int), gate_internal_size[s->gate_type]);
 	memcpy(s->internals, buffer+offset, sizeof(int) * gate_internal_size[s->gate_type]);
 	offset += sizeof(int) * gate_internal_size[s->gate_type];
 
@@ -82,20 +82,20 @@ void gate_deserialize (gate_state *s, void *buffer, tw_lp *lp) {
 	} else {
 		in_size = gate_input_size[s->gate_type];
 	}
-	s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", in_size * sizeof(int), 1);
+	s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(int), in_size);
     memcpy(s->inputs, buffer+offset, sizeof(int) * in_size);
 	offset += sizeof(int) * in_size;
 
 	// 3x s->outputs arrays
-	s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
+	s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(int), s->output_size);
     memcpy(s->output_gid, buffer+offset, sizeof(int) * s->output_size);
 	offset += sizeof(int) * s->output_size;
 
-	s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
+	s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(int), s->output_size);
     memcpy(s->output_pin, buffer+offset, sizeof(int) * s->output_size);
 	offset += sizeof(int) * s->output_size;
 
-	s->output_val = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
+	s->output_val = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(int), s->output_size);
     memcpy(s->output_val, buffer+offset, sizeof(int) * s->output_size);
 	offset += sizeof(int) * s->output_size;
 

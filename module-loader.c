@@ -80,7 +80,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
     }
 
     // INIT input array
-    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", in_size * sizeof(int), 1);
+    s->inputs = tw_calloc(TW_LOC, "gates_init_gate_input", sizeof(int), in_size);
     for (i = 0; i < in_size; i++) {
 
         if (total_offset > 500) {
@@ -135,7 +135,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
     }
 
     // INIT internal array
-    s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", gate_internal_size[s->gate_type] * sizeof(int), 1);
+    s->internals = tw_calloc(TW_LOC, "gates_init_gate_internal", sizeof(int), gate_internal_size[s->gate_type]);
 
     // HACK!! Needed for fanout gate_func
     if (s->gate_type == fanout_TYPE) {
@@ -144,14 +144,15 @@ void gate_init(gate_state *s, tw_lp *lp) {
     // HACK!! Needed for mega_gate RIO sizing
     if (s->gate_type == mega_gate_TYPE) {
         s->internals[0] = in_size;
+        s->internals[1] = out_size;
     }
 
     // INIT output array
     s->output_size = out_size;
 
-    s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
-    s->output_val = tw_calloc(TW_LOC, "gates_init_gate_output", s->output_size * sizeof(int), 1);
+    s->output_gid = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(int), s->output_size);
+    s->output_pin = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(int), s->output_size);
+    s->output_val = tw_calloc(TW_LOC, "gates_init_gate_output", sizeof(int), s->output_size);
     for (i = 0; i < s->output_size; i++) {
         s->output_gid[i] = -1;
         s->output_pin[i] = -1;
