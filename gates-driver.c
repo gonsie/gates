@@ -172,9 +172,11 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             wave_print(tw_now(lp), s->inputs[0], s->wave_id);
         }
     } else if (in_msg->type == WAVE_MSG) {
-        // turn on wave printing for this LP
-        SWAP(&(s->wave_print), &(in_msg->value));
-        s->wave_id = (char) in_msg->id;
+        if (self != 0) {
+            // turn on wave printing for this LP
+            SWAP(&(s->wave_print), &(in_msg->value));
+            s->wave_id = (char) in_msg->id;
+        }
     } else {
         printf("ERROR: could not process message type %d on lp %u\n", in_msg->type, self);
     }
