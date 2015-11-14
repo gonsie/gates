@@ -231,6 +231,10 @@ unified_exit_rc:
 void gates_final(gate_state *s, tw_lp *lp){
     unsigned int self = lp->gid;
 
+#if DEBUG_TRACE
+    fprintf(node_out_file, "FINAL: #%u type:%d net:%d\n", self, s->gate_type, s->received_events);
+    fflush(node_out_file);
+#endif
     if(FALSE) {
         printf("#%u e%d\n", self, s->received_events);
         fflush(stdout);

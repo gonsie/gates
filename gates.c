@@ -81,6 +81,12 @@ int gates_main(int argc, char* argv[]){
     sprintf(cpname, "%s/checkpoint/submodule-checkpoint", dpath);
     strcpy(g_io_checkpoint_name, cpname);
 
+#if DEBUG_TRACE
+    char debugfile[100];
+    sprintf(debugfile, "%s/debug/node_%d_output_file.txt", dpath, g_tw_mynode);
+    node_out_file = fopen(debugfile,"w");
+#endif
+
     tw_run();
 
     tw_end();
