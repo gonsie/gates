@@ -83,8 +83,8 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 
     //printf("LP %d (type %d) on node %d processing an event type %d\n", self, s->gate_type, g_tw_mynode, in_msg->type);
 
-#if DEBUG_TRACE
-    fprintf(node_out_file, "FWDE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
+#if DEBUG_TRACE_RNG
+    fprintf(node_out_file, "FWDE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->id, global_swap_count);
     fflush(node_out_file);
 #endif
 
@@ -221,7 +221,7 @@ unified_exit_rc:
         tw_rand_reverse_unif(lp->rng);
     }
     //printf("%d un-processed %d (%d) rng at %ld at %lf from id %d val %d\n", self, s->received_events, in_msg->type, lp->rng->count, tw_now(lp), in_msg->id, in_msg->value);
-#if DEBUG_TRACE
+#if DEBUG_TRACE_RNG
     fprintf(node_out_file, "REVE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->data.gid, global_swap_count);
     fflush(node_out_file);
 #endif
