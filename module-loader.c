@@ -101,7 +101,7 @@ void gate_init(gate_state *s, tw_lp *lp) {
             global_datafile_offset += offset;
             total_offset += offset;
             // TODO: some how mark this as not a GID
-            s->inputs[i] = -100*constant;
+            s->inputs[i] = constant;
         } else {
             int module, from_gid;
             sscanf(line, "%d %n", &module, &offset);
@@ -128,8 +128,10 @@ void gate_init(gate_state *s, tw_lp *lp) {
                 assert(from_gid < routing_table_lp[RO_TOTAL]);
             }
             if (from_gid >= 0) {
-                s->inputs[i] = from_gid;
-                assert(s->inputs[i] < routing_table_lp[RO_TOTAL]);
+                // INPUTS ARRAY HOLDS VALUES, NOT GIDs
+                s->inputs[i] = 0;
+                // s->inputs[i] = from_gid;
+                assert(from_gid < routing_table_lp[RO_TOTAL]);
             }
         }
     }

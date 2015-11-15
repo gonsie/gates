@@ -36,14 +36,6 @@ void SWAP(int *a, int *b) {
 
 void gates_init(gate_state *s, tw_lp *lp) {
     int self = lp->gid;
-    assert(self >= (*routing_table_mpi)[g_tw_mynode]);
-    assert(self < (*routing_table_mpi)[g_tw_mynode+1]);
-    if (s->gate_type == fanout_TYPE) {
-        if (s->output_size != s->internals[0]) {
-            printf("Fanout LP %d has wrong output size to internal[0]: %d != %d\n", self, s->output_size, s->internals[0]);
-            s->internals[0] = s->output_size;
-        }
-    }
 
     if (s->gate_type == input_gate_TYPE) {
         double jitter = (tw_rand_unif(lp->rng)) * 0.1;
@@ -81,8 +73,6 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
 
     *(int *) bf = (int) 0;
 
-    //printf("LP %d (type %d) on node %d processing an event type %d\n", self, s->gate_type, g_tw_mynode, in_msg->type);
-
 #if DEBUG_TRACE_RNG
     fprintf(node_out_file, "FWDE: #%u %lu %lu %lu %lu %d %2.3f %u %d\n", self, lp->rng->Cg[0], lp->rng->Cg[1], lp->rng->Cg[2], lp->rng->Cg[3], in_msg->type, tw_now(lp), in_msg->id, global_swap_count);
     fflush(node_out_file);
@@ -103,7 +93,7 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
     assert(error_count == 0);
 
     if (in_msg->type == SOURCE_MSG) {
-        //Assume node 0 is an input //TODO: Can't assume this with patitioning
+        //Assume node 0 is an input //TODO: Can't assume this with partitioning
         if (self == 0) {
             tw_output(lp, "Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
             // printf("Source nodes doing a wave of inputs at %f.\n", tw_now(lp));
@@ -149,9 +139,6 @@ void gates_event(gate_state *s, tw_bf *bf, message *in_msg, tw_lp *lp){
             in_msg->internal_pin1 = s->internals[1];
         }
 
-        if (s->gate_type == fanout_TYPE) {
-            s->internals[0] = s->output_size;
-        }
         function_array[s->gate_type](s->inputs, s->internals, s->output_val);
         for (i = 0; i < s->output_size; i++){
             if (s->output_gid[i] >= 0) {
