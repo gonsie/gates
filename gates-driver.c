@@ -37,6 +37,8 @@ void SWAP(int *a, int *b) {
 void gates_init(gate_state *s, tw_lp *lp) {
     int self = lp->gid;
 
+    assert(lp->gid == lp->id + (*routing_table_mpi)[g_tw_mynode]);
+
     if (s->gate_type == input_gate_TYPE) {
         double jitter = (tw_rand_unif(lp->rng)) * 0.1;
         tw_event *e2 = tw_event_new(self, 1 + jitter, lp);
