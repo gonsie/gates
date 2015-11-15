@@ -183,6 +183,8 @@ void gate_init(gate_state *s, tw_lp *lp) {
 #if VERIFY_READ
             printf("ROUTE %d (%d)", to_gid, routing_table_lp[module]);
 #endif
+            assert(module >= 0);
+            assert(module < RO_TOTAL);
             to_gid += routing_table_lp[module];
             assert(to_gid < routing_table_lp[RO_TOTAL]);
             line += offset+1;
@@ -190,6 +192,11 @@ void gate_init(gate_state *s, tw_lp *lp) {
             total_offset += offset+1;
         } else {
             to_gid = module;
+            // to_gid could possibly be -1
+            if (to_gid >= 0) {
+                assert(to_gid < g_tw_nlp);
+                to_gid += g_tw_lp_offset;
+            }
         }
 
         assert(1 == sscanf(line, "%d %n", &to_pin, &offset) && "ERROR: expected pindex");
@@ -201,7 +208,6 @@ void gate_init(gate_state *s, tw_lp *lp) {
         total_offset += offset;
         if (to_gid >= 0) {
             s->output_gid[i] = to_gid;
-            assert(to_gid < routing_table_lp[RO_TOTAL]);
             s->output_pin[i] = to_pin;
         }
     }
