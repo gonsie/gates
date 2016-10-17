@@ -341,11 +341,16 @@ int module_loader_main(int argc, char* argv[]){
     if (use_unique_name_flag == 1) {
         char checkpointname[50];
         sprintf(checkpointname, "module-%03d.checkpoint", file_num);
+
         io_store_multiple_partitions(checkpointname, 0, 0);
     } else {
         char checkpointname[256];
         sprintf(checkpointname, "%s/checkpoint/submodule-checkpoint", datapath);
+        tw_pe *me = g_tw_pe[0];
+        tw_clock start = tw_clock_read();
         io_store_multiple_partitions(checkpointname, 1, file_num);
+        tw_clock store_time = (tw_clock_read() - start);
+        printf("RIO Store Time %11.4lf\n", (double) store_time / g_tw_clock_rate);
     }
 
     tw_end();
