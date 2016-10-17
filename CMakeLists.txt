@@ -1,5 +1,8 @@
 INCLUDE_DIRECTORIES(${ROSS_SOURCE_DIR} ${ROSS_BINARY_DIR})
 INCLUDE_DIRECTORIES(${RIO_SOURCE_DIR} ${RIO_BINARY_DIR})
+IF(BGPM)
+        INCLUDE_DIRECTORIES(${BGPM_LIB})
+ENDIF(BGPM)
 
 ## DATA FILES
 # configure the run for the specified number of modules
@@ -63,4 +66,9 @@ SET(module_loader_srcs
     module-loader.c
 )
 ADD_EXECUTABLE(module_loader ${module_loader_srcs})
-TARGET_LINK_LIBRARIES(module_loader ROSS RIO m)
+
+IF(BGPM)
+        TARGET_LINK_LIBRARIES(module_loader ROSS RIO imp_bgpm m)
+ELSE(BGPM)
+        TARGET_LINK_LIBRARIES(module_loader ROSS RIO m)
+ENDIF(BGPM)
