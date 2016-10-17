@@ -25,6 +25,7 @@ tw_lptype gates_lps[] = {
         (pre_run_f) NULL,
         (event_f) gates_event,
         (revent_f) gates_event_rc,
+        (commit_f) NULL,
         (final_f) gates_final,
         (map_f) gates_custom_mapping_to_pe,
         sizeof(gate_state)  },
