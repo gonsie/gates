@@ -10,6 +10,7 @@
 
 #include "ross.h"
 #include "generic-model.h"
+#include "gates-config.h"
 #include "library.h"
 #include "routing.h"
 
@@ -322,7 +323,7 @@ int module_loader_main(int argc, char* argv[]){
     tw_lp_setup_types();
 
     g_io_events_buffered_per_rank = 0;
-    io_init_local(g_tw_nkp);
+    io_init();
 
     char dataname[100];
     char *datapath = dirname(argv[0]);
@@ -339,17 +340,19 @@ int module_loader_main(int argc, char* argv[]){
 
     fclose(global_datafile_handle);
 
+    io_register_model_version(MODEL_VERSION);
+
     if (use_unique_name_flag == 1) {
         char checkpointname[50];
         sprintf(checkpointname, "module-%03d.checkpoint", file_num);
-
-        io_store_multiple_partitions(checkpointname, 0, 0);
+        io_store_checkpoint(checkpointname, 0);
     } else {
         char checkpointname[256];
         sprintf(checkpointname, "%s/checkpoint/submodule-checkpoint", datapath);
         tw_pe *me = g_tw_pe[0];
         tw_clock start = tw_clock_read();
-        io_store_multiple_partitions(checkpointname, 1, file_num);
+        io_appending_job();
+        io_store_checkpoint(checkpointname, file_num);
         tw_clock store_time = (tw_clock_read() - start);
         printf("RIO Store Time %11.4lf\n", (double) store_time / g_tw_clock_rate);
     }

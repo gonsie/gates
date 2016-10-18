@@ -75,12 +75,11 @@ int gates_main(int argc, char* argv[]){
     tw_lp_setup_types();
 
     g_io_events_buffered_per_rank = 0;
-    io_init_local(g_tw_nkp);
-    g_io_load_at = PRE_INIT;
     char cpname[100];
     char *dpath = dirname(argv[0]);
     sprintf(cpname, "%s/checkpoint/submodule-checkpoint", dpath);
-    strcpy(g_io_checkpoint_name, cpname);
+    io_init();
+    io_load_checkpoint(cpname, PRE_INIT);
 
 #if DEBUG_TRACE
     char debugfile[100];
