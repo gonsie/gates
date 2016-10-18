@@ -275,6 +275,7 @@ tw_lptype mylps[] = {
      (pre_run_f) NULL,
      (event_f) blank_event_handler,
      (revent_f) blank_event_handler_rc,
+     (commit_f) NULL,
      (final_f) blank_finish,
      (map_f) module_loader_map,
     sizeof(gate_state)},
@@ -314,7 +315,7 @@ int module_loader_main(int argc, char* argv[]){
     g_tw_nlp = routing_table_lp[module_index+1] - g_tw_lp_offset;
     g_tw_nkp = g_tw_nlp / LPS_PER_KP;
 
-    tw_define_lps(g_tw_nlp, sizeof(message), 0);
+    tw_define_lps(g_tw_nlp, sizeof(message));
 
     g_tw_lp_types = mylps;
     g_io_lp_types = iolps;
