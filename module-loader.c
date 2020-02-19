@@ -195,8 +195,11 @@ void gate_init(gate_state *s, tw_lp *lp) {
             to_gid = module;
             // to_gid could possibly be -1
             if (to_gid >= 0) {
-                assert(to_gid < g_tw_nlp);
-                to_gid += g_tw_lp_offset;
+                //assert(to_gid < g_tw_nlp);
+                // fixed with fish script
+                if (to_gid < g_tw_nlp) {
+                    to_gid += g_tw_lp_offset;
+                }
             }
         }
 
