@@ -5,6 +5,9 @@
 #include "generic-model.h"
 #include "library.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlogical-op-parentheses"
+
 void AN2_func  (int* input, int* internal, int* output) {
 	//Z : A B
 	output[0] = input[0] && input[1];
