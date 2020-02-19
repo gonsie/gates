@@ -2495,7 +2495,7 @@ float FD1P_delay_func (int in_pin, int out_pin, BOOL rising) {
 
 int FD1S_ff (int* input, int* internal, int* output) {
 	//clocked_on = CP
-	//next_state =  D TE' + TI TE 
+	//next_state =  D TE' + TI TE
 	if (input[0]) {
 		internal[0] = input[1] && !input[2] || input[3] && input[2];
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -2540,7 +2540,7 @@ float FD1S_delay_func (int in_pin, int out_pin, BOOL rising) {
 
 int FD1SP_ff (int* input, int* internal, int* output) {
 	//clocked_on = CP
-	//next_state =  D TE' + TI TE 
+	//next_state =  D TE' + TI TE
 	if (input[0]) {
 		internal[0] = input[1] && !input[2] || input[3] && input[2];
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -3750,7 +3750,7 @@ float FDS2P_delay_func (int in_pin, int out_pin, BOOL rising) {
 
 int FJK1_ff (int* input, int* internal, int* output) {
 	//clocked_on = CP
-	//next_state = (J' K' IQ) + (J K') + (J K IQ') 
+	//next_state = (J' K' IQ) + (J K') + (J K IQ')
 	if (input[0]) {
 		internal[0] = (!input[1] && !input[2] && internal[0]) || (input[1] && !input[2]) || (input[1] && input[2] && !internal[0]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -3795,7 +3795,7 @@ float FJK1_delay_func (int in_pin, int out_pin, BOOL rising) {
 
 int FJK1P_ff (int* input, int* internal, int* output) {
 	//clocked_on = CP
-	//next_state = (J' K' IQ) + (J K') + (J K IQ') 
+	//next_state = (J' K' IQ) + (J K') + (J K IQ')
 	if (input[0]) {
 		internal[0] = (!input[1] && !input[2] && internal[0]) || (input[1] && !input[2]) || (input[1] && input[2] && !internal[0]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -3840,7 +3840,7 @@ float FJK1P_delay_func (int in_pin, int out_pin, BOOL rising) {
 
 int FJK1S_ff (int* input, int* internal, int* output) {
 	//clocked_on = CP
-	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE) 
+	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE)
 	if (input[0]) {
 		internal[0] = (!input[1] && !input[2] && !input[3] && internal[0]) || (input[1] && !input[2] && !input[3]) || (input[1] && input[2] && !input[3] && !internal[0]) || (input[4] && input[3]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -3885,7 +3885,7 @@ float FJK1S_delay_func (int in_pin, int out_pin, BOOL rising) {
 
 int FJK1SP_ff (int* input, int* internal, int* output) {
 	//clocked_on = CP
-	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE) 
+	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE)
 	if (input[0]) {
 		internal[0] = (!input[1] && !input[2] && !input[3] && internal[0]) || (input[1] && !input[2] && !input[3]) || (input[1] && input[2] && !input[3] && !internal[0]) || (input[4] && input[3]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -3936,7 +3936,7 @@ int FJK2_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' IQ) + (J K') + (J K IQ') 
+	//next_state =  (J' K' IQ) + (J K') + (J K IQ')
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && internal[0]) || (input[2] && !input[3]) || (input[2] && input[3] && !internal[0]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -3999,7 +3999,7 @@ int FJK2P_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' IQ) + (J K') + (J K IQ') 
+	//next_state =  (J' K' IQ) + (J K') + (J K IQ')
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && internal[0]) || (input[2] && !input[3]) || (input[2] && input[3] && !internal[0]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -4062,7 +4062,7 @@ int FJK2S_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE) 
+	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE)
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && !input[4] && internal[0]) || (input[2] && !input[3] && !input[4]) || (input[2] && input[3] && !input[4] && !internal[0]) || (input[5] && input[4]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -4125,7 +4125,7 @@ int FJK2SP_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE) 
+	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE)
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && !input[4] && internal[0]) || (input[2] && !input[3] && !input[4]) || (input[2] && input[3] && !input[4] && !internal[0]) || (input[5] && input[4]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -4202,7 +4202,7 @@ int FJK3_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' IQ) + (J K') + (J K IQ') 
+	//next_state =  (J' K' IQ) + (J K') + (J K IQ')
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && internal[0]) || (input[2] && !input[3]) || (input[2] && input[3] && !internal[0]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -4291,7 +4291,7 @@ int FJK3P_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' IQ) + (J K') + (J K IQ') 
+	//next_state =  (J' K' IQ) + (J K') + (J K IQ')
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && internal[0]) || (input[2] && !input[3]) || (input[2] && input[3] && !internal[0]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -4380,7 +4380,7 @@ int FJK3S_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE) 
+	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE)
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && !input[5] && internal[0]) || (input[2] && !input[3] && !input[5]) || (input[2] && input[3] && !input[5] && !internal[0]) || (input[6] && input[5]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -4469,7 +4469,7 @@ int FJK3SP_ff (int* input, int* internal, int* output) {
 		return 1;
 	}
 	//clocked_on = CP
-	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE) 
+	//next_state =  (J' K' TE' IQ) + (J K' TE') + (J K TE' IQ') + (TI TE)
 	if (input[1]) {
 		internal[0] = (!input[2] && !input[3] && !input[5] && internal[0]) || (input[2] && !input[3] && !input[5]) || (input[2] && input[3] && !input[5] && !internal[0]) || (input[6] && input[5]);
 		internal[1] = LOGIC_NOT(internal[0]);
@@ -9016,13 +9016,13 @@ delay_func delay_array[GATE_TYPE_COUNT] = {
 
 
 int gate_input_size[GATE_TYPE_COUNT] = {
-	2, 2, 3, 3, 4, 4, 4, 6, 6, 8, 8, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 2, 2, 4, 4, 3, 3, 4, 4, 2, 3, 3, 3, 3, 2, 2, 4, 4, 3, 3, 5, 5, 4, 4, 4, 4, 6, 6, 3, 3, 5, 5, 3, 4, 4, 3, 3, 3, 5, 5, 4, 4, 6, 6, 5, 5, 7, 7, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 2, 2, 5, 3, 3, 3, 4, 4, 3, 5, 5, 6, 6, 8, 8, 11, 11, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 16, 16, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 2, 2, 3, 3, 4, 4, 4, 1, 1, 0, 1, 
+	2, 2, 3, 3, 4, 4, 4, 6, 6, 8, 8, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 2, 2, 4, 4, 3, 3, 4, 4, 2, 3, 3, 3, 3, 2, 2, 4, 4, 3, 3, 5, 5, 4, 4, 4, 4, 6, 6, 3, 3, 5, 5, 3, 4, 4, 3, 3, 3, 5, 5, 4, 4, 6, 6, 5, 5, 7, 7, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 2, 2, 5, 3, 3, 3, 4, 4, 3, 5, 5, 6, 6, 8, 8, 11, 11, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 16, 16, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 2, 2, 3, 3, 4, 4, 4, 1, 1, 0, 1,
 	};
 
 int gate_internal_size[GATE_TYPE_COUNT] = {
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 2, 0, 
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 2, 0,
 	};
 
 int gate_output_size[GATE_TYPE_COUNT] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 1, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 0, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 1, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 0, 1,
 	};
