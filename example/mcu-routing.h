@@ -28,6 +28,6 @@
 
 #define LPS_PER_KP (18)
 
-#define TOTAL_PARTS (329474)
+#define TOTAL_PARTS (6604)
 
 #endif
