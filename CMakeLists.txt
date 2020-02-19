@@ -54,7 +54,7 @@ SET(gates_srcs
     gates.c
 )
 ADD_EXECUTABLE(gates ${gates_srcs})
-TARGET_LINK_LIBRARIES(gates ROSS RIO m)
+TARGET_LINK_LIBRARIES(gates ROSS m)
 
 SET(module_loader_srcs
     generic-model.h
@@ -68,7 +68,7 @@ SET(module_loader_srcs
 ADD_EXECUTABLE(module_loader ${module_loader_srcs})
 
 IF(BGPM)
-        TARGET_LINK_LIBRARIES(module_loader ROSS RIO imp_bgpm m)
+        TARGET_LINK_LIBRARIES(module_loader ROSS imp_bgpm m)
 ELSE(BGPM)
-        TARGET_LINK_LIBRARIES(module_loader ROSS RIO m)
+        TARGET_LINK_LIBRARIES(module_loader ROSS m)
 ENDIF(BGPM)
