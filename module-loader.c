@@ -247,7 +247,7 @@ tw_peid module_loader_map(tw_lpid gid) {
 void module_loader_mapping_setup(void){
     int lpid, kpid;
     int i;
-    tw_pe *pe = tw_pe_next(NULL);
+    tw_pe *pe = g_tw_pe; //tw_pe_next(NULL);
 
     int extra_lp_on_kp = g_tw_nlp - (g_tw_nkp * LPS_PER_KP);
 
@@ -349,7 +349,7 @@ int module_loader_main(int argc, char* argv[]){
     } else {
         char checkpointname[256];
         sprintf(checkpointname, "%s/checkpoint/submodule-checkpoint", datapath);
-        tw_pe *me = g_tw_pe[0];
+        //tw_pe *me = g_tw_pe[0];
         tw_clock start = tw_clock_read();
         io_appending_job();
         io_store_checkpoint(checkpointname, file_num);

@@ -30,7 +30,7 @@ void gates_custom_mapping_setup(void){
 
     //This loop happens once on each pe
     //set starting local and global ids for the LPs on this node
-    for (lplid = 0, lpgid = g_tw_lp_offset, pe = NULL; (pe = tw_pe_next(pe)); ) {
+    for (lplid = 0, lpgid = g_tw_lp_offset, pe = NULL; (pe = g_tw_pe); ) {
 
         //For each kp
         for (kpid = 0; kpid < g_tw_nkp; kpid++) {
@@ -54,6 +54,7 @@ void gates_custom_mapping_setup(void){
 #endif
             }
         }
+        return;
     }
 }
 
