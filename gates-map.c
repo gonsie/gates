@@ -25,7 +25,7 @@ void gates_custom_mapping_setup(void){
     int extra_kps = g_tw_nlp - (g_tw_nkp * LPS_PER_KP);
 
 #if VERIFY_MAPPING
-    printf("Node %ld: nlp %llu, offset %llu, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, extra_kps);
+    printf("Node %ld: nlp %llu, offset %llu, nkp %lu, extra_kps %d\n", g_tw_mynode, g_tw_nlp, g_tw_lp_offset, g_tw_nkp, extra_kps);
 #endif
 
     //This loop happens once on each pe
